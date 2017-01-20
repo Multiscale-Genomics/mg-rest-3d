@@ -11,7 +11,7 @@ class hdf5_coord:
     HDF5 files. All required information should be passed to this class.
     """
     
-    test_file = 'sample_coords.hdf5'
+    test_file = '../sample_coords.hdf5'
     
     def get_resolutions(self, user_id, file_id):
         """

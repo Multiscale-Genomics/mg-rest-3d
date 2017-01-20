@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
 import random
-from hdf5_coord_reader import hdf5_coord
+from rest.hdf5_coord_reader import hdf5_coord
 
 h5 = hdf5_coord()
 
 # Get the resolutions
-#print h5.get_resolutions('test', '')
+print h5.get_resolutions('test', '')
 for i in xrange(1000):
     x = h5.get_resolutions('test', '')
 
