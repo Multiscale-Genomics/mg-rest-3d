@@ -19,33 +19,33 @@ limitations under the License.
 import random
 from rest.hdf5_coord_reader import hdf5_coord
 
-h5 = hdf5_coord()
+h5 = hdf5_coord('test', '', 2000)
 
 # Get the resolutions
-print h5.get_resolutions('test', '')
+print h5.get_resolutions()
 for i in xrange(1000):
-    x = h5.get_resolutions('test', '')
+    x = h5.get_resolutions()
 
 # Get the Chromosomes
-#print h5.get_chromosomes('test', '', 2000)
+#print h5.get_chromosomes()
 #for i in xrange(1000):
-#    x = h5.get_chromosomes('test', '', 2000)
+#    x = h5.get_chromosomes()
 
 # Get regions
-#chr_list = h5.get_chromosomes('test', '', 2000)
-#print h5.get_regions('test', '', 2000, random.choice(chr_list), 10000, 2000000)
+#chr_list = h5.get_chromosomes()
+#print h5.get_regions(random.choice(chr_list), 10000, 2000000)
 #for i in xrange(1000):
-#    x = h5.get_regions('test', '', 2000, random.choice(chr_list), 10000, 2000000)
+#    x = h5.get_regions(random.choice(chr_list), 10000, 2000000)
 
 # Get models
-chr_list = h5.get_chromosomes('test', '', 2000)
-regions = h5.get_regions('test', '', 2000, random.choice(chr_list), 10000, 2000000)
+chr_list = h5.get_chromosomes()
+regions = h5.get_regions(random.choice(chr_list), 10000, 2000000)
 #region_id = random.randint(0, 249)
-#models = h5.get_models('test', '', 2000, random.choice(regions))
+#models = h5.get_models(random.choice(regions))
 #print models
 #for i in xrange(1000):
 #    #region_id = random.randint(0, 249)
-#    x = h5.get_models('test', '', 2000, random.choice(regions))
+#    x = h5.get_models(random.choice(regions))
 
 """
 for i in xrange(100):

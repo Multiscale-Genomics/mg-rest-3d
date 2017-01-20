@@ -344,9 +344,9 @@ class GetModel(Resource):
         file_id    = request.args.get('file_id')
         resolution = request.args.get('res')
         region_id  = request.args.get('region')
-        model_id  = request.args.get('model')
+        model_str  = request.args.get('model')
         
-        params = [user_id, file_id, resolution, region_id, model_id]
+        params = [user_id, file_id, resolution, region_id, model_str]
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
@@ -354,17 +354,21 @@ class GetModel(Resource):
         
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_id}), 400
+            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
         
         try:
             resolution = int(resolution)
         except Exception as e:
             # ERROR - one of the parameters is not of integer type
-            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_id}), 400
+            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
         
         h5 = hdf5_coord()
         
-        models = h5.get_model(user_id, file_id, resolution, region_id, model_id)
+        model_ids = model_str.split(',')
+        models = []
+        for mid in model_ids:
+            model = h5.get_model(user_id, file_id, resolution, region_id, model_ids)
+            models.append([str(x) for coords in model for x in coords])
         
         return {
             '_links': {
@@ -372,6 +376,7 @@ class GetModel(Resource):
                 '_parent': request.url_root + 'api/3dcoord'
             },
             'region_id'  : region_id,
+            'meta_data' : ,
             'models' : models
         }
 
