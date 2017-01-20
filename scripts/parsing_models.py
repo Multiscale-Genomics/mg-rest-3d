@@ -19,30 +19,10 @@ limitations under the License.
 import json, h5py
 import numpy as np
 
-json_files = [
-    '<dir_to_json>/chrx_1_N.json',
-    ...
-]
-
-
-"""
-Need to work in the import of the parameters for each of the models and each of
-the regions. This should also be the place to include the meta data about the
-source for the information that have been computed.
-
-This should include all that is in the all info from the metadata and object.
-The majority of this should only require importing the once. Elements that might
-change include:
- - uuid
- - start
- - chromStart
- - end
- - chromEnd
- - resolution
- - dependencies
-"""
+json_files = open('json_files.txt', 'r')
 
 for jf in json_files:
+    jf = jf.strip()
     models = json.loads(open(jf).read())
     
     metadata = models['metadata']
@@ -55,7 +35,7 @@ for jf in json_files:
     uuid = objectdata['uuid']
     
     # Create the HDF5 file
-    filename ="test02.hdf5"
+    filename ="test_02.hdf5"
     f = h5py.File(filename, "a")
     
     print file_name[-1] + ' - ' + file_name[-3] + "\t" + objectdata['chrom'][0] + ' : ' + str(objectdata['chromStart'][0]) + ' - ' + str(objectdata['chromEnd'][0]) + " | " + str(int(objectdata['chromEnd'][0]-objectdata['chromStart'][0])) + " - " + str(len(models['models'][0]['data']))
@@ -90,6 +70,7 @@ for jf in json_files:
         dset.attrs['datatype']       = objectdata['datatype']
         dset.attrs['components']     = objectdata['components']
         dset.attrs['source']         = objectdata['source']
+        dset.attrs['TADbit_meta']    = json.dumps(metadata)
     
     clustergrps = clustersgrp.create_group(str(uuid))
     for c in xrange(len(clusters)):
@@ -129,12 +110,15 @@ for jf in json_files:
     
     model_param_ds = mpgrp.create_dataset(str(uuid), data=model_param, chunks=True, compression="gzip")
     
-    model_param_ds.attrs['i'] = current_size
-    model_param_ds.attrs['j'] = current_size+(len(models['models'][0]['data'])/3)
-    model_param_ds.attrs['chromosome'] = objectdata['chrom'][0]
-    model_param_ds.attrs['start'] = int(objectdata['chromStart'][0])
-    model_param_ds.attrs['end'] = int(objectdata['chromEnd'][0])
+    model_param_ds.attrs['i']            = current_size
+    model_param_ds.attrs['j']            = current_size+(len(models['models'][0]['data'])/3)
+    model_param_ds.attrs['chromosome']   = objectdata['chrom'][0]
+    model_param_ds.attrs['start']        = int(objectdata['chromStart'][0])
+    model_param_ds.attrs['end']          = int(objectdata['chromEnd'][0])
     model_param_ds.attrs['dependencies'] = json.dumps(objectdata['dependencies'])
+    model_param_ds.attrs['restraints']   = json.dumps(models['restraints'])
+    if 'hic_data' in models:
+        model_param_ds.attrs['hic_data']     = json.dumps(models['hic_data'])
     
     dset[current_size:current_size+(len(models['models'][0]['data'])/3), 0:1000, 0:3] += dnp
     
