@@ -20,7 +20,7 @@ import json, h5py, random
 import numpy as np
 
 resolution  = 2000
-clusters    = [0, 1, 2, 3, 4]
+clusters    = [[0, 1, 2], [3, 4], [5], [6]]
 centroids   = [1, 10, 100, 150, 200]
 chromosomes = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'X']
 
@@ -60,7 +60,9 @@ for uuid in xrange(250):
         dset.attrs['components']     = 'components'
         dset.attrs['source']         = 'source'
     
-    clustersds = clustersgrp.create_dataset(str(uuid), clusters, chunks=True, compression="gzip")
+    clustergrps = clustersgrp.create_group(str(uuid))
+    for c in xrange(len(clusters)):
+        clustersds = clustergrps.create_dataset(str(c), data=clusters[c], chunks=True, compression="gzip")
     centroidsds = centroidsgrp.create_dataset(str(uuid), centroids, chunks=True, compression="gzip")
     
     current_size = len(dset)
