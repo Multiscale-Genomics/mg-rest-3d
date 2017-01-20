@@ -151,6 +151,6 @@ class hdf5_coord:
         model_loc = list(mpds[:,0]).index(model_ids)
         
         # length x model_loc x coords
-        model = dset[mpds.attrs['i']:mpds.attrs['j'], model_loc[0], :]
+        model = dset[mpds.attrs['i']:mpds.attrs['j'], model_loc, :]
         
         return model
