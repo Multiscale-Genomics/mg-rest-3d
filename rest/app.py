@@ -50,6 +50,30 @@ class GetResolutions(Resource):
     
     """
     
+    def usage(self, error_message, status_code, parameters = {}):
+        usage = {
+                    '_links' : {
+                        '_self' : request.base_url,
+                        '_parent': request.url_root + 'api/3dcoord'
+                    },
+                    'parameters' : {
+                        'user_id' : ['User ID', 'str', 'REQUIRED'],
+                        'file_id' : ['File ID', 'str', 'REQUIRED'],
+                    }
+                }
+        message = {
+                      'usage' : usage,
+                      'status_code' : status_code
+                  }
+
+        if len(parameters) > 0:
+            message['provided_parameters'] = parameters
+        
+        if error_message != None:
+            message['error'] = error_message
+
+        return message
+    
     def get(self):
         user_id = request.args.get('user_id')
         file_id = request.args.get('file_id')
@@ -78,7 +102,279 @@ class GetResolutions(Resource):
             },
             'resolutions': resolutions,
         }
+
+
+class GetChromosomes(Resource):
+    """
+    
+    """
+    
+    def usage(self, error_message, status_code, parameters = {}):
+        usage = {
+                    '_links' : {
+                        '_self' : request.base_url,
+                        '_parent': request.url_root + 'api/3dcoord'
+                    },
+                    'parameters' : {
+                        'user_id' : ['User ID', 'str', 'REQUIRED'],
+                        'file_id' : ['File ID', 'str', 'REQUIRED'],
+                        'res'     : ['Resolution', 'int', 'REQUIRED'],
+                    }
+                }
+        message = {
+                      'usage' : usage,
+                      'status_code' : status_code
+                  }
+
+        if len(parameters) > 0:
+            message['provided_parameters'] = parameters
         
+        if error_message != None:
+            message['error'] = error_message
+
+        return message
+    
+    def get(self):
+        user_id = request.args.get('user_id')
+        file_id = request.args.get('file_id')
+        resolution = request.args.get('res')
+        
+        params = [user_id, file_id, resolution]
+
+        # Display the parameters available
+        if sum([x is None for x in params]) == len(params):
+            return self.usage(None, 200)
+        
+        # ERROR - one of the required parameters is NoneType
+        if sum([x is not None for x in params]) != len(params):
+            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id}), 400
+        
+        try:
+            resolution = int(resolution)
+        except Exception as e:
+            # ERROR - one of the parameters is not of integer type
+            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution}), 400
+        
+        h5 = hdf5_coord()
+        
+        chromosomes = h5.get_chromosomes(user_id, file_id, resolution)
+        
+        return {
+            '_links': {
+                '_self': request.base_url,
+                '_parent': request.url_root + 'api/3dcoord'
+            },
+            'resolution'  : resolution,
+            'chromosomes' : chromosomes
+        }
+
+
+class GetRegions(Resource):
+    """
+    
+    """
+    
+    def usage(self, error_message, status_code, parameters = {}):
+        usage = {
+                    '_links' : {
+                        '_self' : request.base_url,
+                        '_parent': request.url_root + 'api/3dcoord'
+                    },
+                    'parameters' : {
+                        'user_id' : ['User ID', 'str', 'REQUIRED'],
+                        'file_id' : ['File ID', 'str', 'REQUIRED'],
+                        'res'     : ['Resolution', 'int', 'REQUIRED'],
+                        'chr_id'  : ['Chromosome ID', 'str', 'REQUIRED'],
+                        'start'   : ['Chromosome start position', 'int', 'REQUIRED'],
+                        'end'     : ['Chromosome end position', 'int', 'REQUIRED'],
+                    }
+                }
+        message = {
+                      'usage' : usage,
+                      'status_code' : status_code
+                  }
+
+        if len(parameters) > 0:
+            message['provided_parameters'] = parameters
+        
+        if error_message != None:
+            message['error'] = error_message
+
+        return message
+    
+    def get(self):
+        user_id = request.args.get('user_id')
+        file_id = request.args.get('file_id')
+        resolution = request.args.get('res')
+        chr_id = request.args.get('chr')
+        start = request.args.get('start')
+        end = request.args.get('end')
+        
+        params = [user_id, file_id, resolution, chr_id, start, end]
+
+        # Display the parameters available
+        if sum([x is None for x in params]) == len(params):
+            return self.usage(None, 200)
+        
+        # ERROR - one of the required parameters is NoneType
+        if sum([x is not None for x in params]) != len(params):
+            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'chr_id' : chr_id, 'start' : start, 'end' : end}), 400
+        
+        try:
+            start = int(start)
+            end = int(end)
+            resolution = int(resolution)
+        except Exception as e:
+            # ERROR - one of the parameters is not of integer type
+            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'chr_id' : chr_id, 'start' : start, 'end' : end}), 400
+        
+        h5 = hdf5_coord()
+        
+        regions = h5.get_regions(user_id, file_id, resolution, chr_id, start, end)
+        
+        return {
+            '_links': {
+                '_self': request.base_url,
+                '_parent': request.url_root + 'api/3dcoord'
+            },
+            'resolution'  : resolution,
+            'chromosomes' : chr_id,
+            'regions'     : regions
+        }
+
+
+class GetModels(Resource):
+    """
+    
+    """
+    
+    def usage(self, error_message, status_code, parameters = {}):
+        usage = {
+                    '_links' : {
+                        '_self' : request.base_url,
+                        '_parent': request.url_root + 'api/3dcoord'
+                    },
+                    'parameters' : {
+                        'user_id'   : ['User ID', 'str', 'REQUIRED'],
+                        'file_id'   : ['File ID', 'str', 'REQUIRED'],
+                        'region_id' : ['Regions ID', 'str', 'REQUIRED'],
+                    }
+                }
+        message = {
+                      'usage' : usage,
+                      'status_code' : status_code
+                  }
+
+        if len(parameters) > 0:
+            message['provided_parameters'] = parameters
+        
+        if error_message != None:
+            message['error'] = error_message
+
+        return message
+    
+    def get(self):
+        user_id = request.args.get('user_id')
+        file_id = request.args.get('file_id')
+        resolution = request.args.get('res')
+        
+        params = [user_id, file_id, resolution, region_id]
+
+        # Display the parameters available
+        if sum([x is None for x in params]) == len(params):
+            return self.usage(None, 200)
+        
+        # ERROR - one of the required parameters is NoneType
+        if sum([x is not None for x in params]) != len(params):
+            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id}), 400
+        
+        try:
+            resolution = int(resolution)
+        except Exception as e:
+            # ERROR - one of the parameters is not of integer type
+            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id}), 400
+        
+        h5 = hdf5_coord()
+        
+        models = h5.get_models(user_id, file_id, region_id)
+        
+        return {
+            '_links': {
+                '_self': request.base_url,
+                '_parent': request.url_root + 'api/3dcoord'
+            },
+            'region_id' : region_id,
+            'models'    : models
+        }
+
+
+class GetModel(Resource):
+    """
+    
+    """
+    
+    def usage(self, error_message, status_code, parameters = {}):
+        usage = {
+                    '_links' : {
+                        '_self' : request.base_url,
+                        '_parent': request.url_root + 'api/3dcoord'
+                    },
+                    'parameters' : {
+                        'user_id'   : ['User ID', 'str', 'REQUIRED'],
+                        'file_id'   : ['File ID', 'str', 'REQUIRED'],
+                        'region_id' : ['Regions ID', 'str', 'REQUIRED'],
+                        'model_id'  : ['Model ID', 'str', 'REQUIRED'],
+                    }
+                }
+        message = {
+                      'usage' : usage,
+                      'status_code' : status_code
+                  }
+
+        if len(parameters) > 0:
+            message['provided_parameters'] = parameters
+        
+        if error_message != None:
+            message['error'] = error_message
+
+        return message
+    
+    def get(self):
+        user_id    = request.args.get('user_id')
+        file_id    = request.args.get('file_id')
+        resolution = request.args.get('res')
+        region_id  = request.args.get('region')
+        model_id  = request.args.get('model')
+        
+        params = [user_id, file_id, resolution, region_id, model_id]
+
+        # Display the parameters available
+        if sum([x is None for x in params]) == len(params):
+            return self.usage(None, 200)
+        
+        # ERROR - one of the required parameters is NoneType
+        if sum([x is not None for x in params]) != len(params):
+            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_id}), 400
+        
+        try:
+            resolution = int(resolution)
+        except Exception as e:
+            # ERROR - one of the parameters is not of integer type
+            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_id}), 400
+        
+        h5 = hdf5_coord()
+        
+        models = h5.get_model(user_id, file_id, resolution, region_id, model_id)
+        
+        return {
+            '_links': {
+                '_self': request.base_url,
+                '_parent': request.url_root + 'api/3dcoord'
+            },
+            'region_id'  : region_id,
+            'models' : models
+        }
+
 
 class ping(Resource):
     """
