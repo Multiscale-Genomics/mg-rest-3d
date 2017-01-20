@@ -124,7 +124,7 @@ class hdf5_coord:
         return model_param_ds[:,:]
         
     
-    def get_model(self, user_id, file_id, resolution, region_id, model_id = None):
+    def get_model(self, user_id, file_id, resolution, region_id, model_ids = None):
         """
         Get the coordinates within a defined region on a specific chromosome.
         If the model_id is not returned the the consensus models for that region
@@ -148,7 +148,7 @@ class hdf5_coord:
         mpgrp = meta['model_params']
         mpds = mpgrp[str(region_id)]
         
-        model_loc = [i for i in xrange(len(mpds)) if model_id in mpds[i]]
+        model_loc = list(mpds[:,0]).index(model_ids)
         
         # length x model_loc x coords
         model = dset[mpds.attrs['i']:mpds.attrs['j'], model_loc[0], :]
