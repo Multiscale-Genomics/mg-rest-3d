@@ -17,7 +17,7 @@ limitations under the License.
 from flask import Flask, make_response, request
 from flask_restful import Api, Resource
 
-from hdf5_reader import hdf5
+from hdf5_coord_reader import hdf5_coord
 
 app = Flask(__name__)
 #app.config['DEBUG'] = False
@@ -45,7 +45,40 @@ class GetEndPoints(Resource):
         }
 
 
+class GetResolutions(Resource):
+    """
+    
+    """
+    
+    def get(self):
+        user_id = request.args.get('user_id')
+        file_id = request.args.get('file_id')
+        
+        params = [user_id, file_id]
 
+        # Display the parameters available
+        if sum([x is None for x in params]) == len(params):
+            return self.usage(None, 200)
+        
+        # ERROR - one of the required parameters is NoneType
+        if sum([x is not None for x in params]) != len(params):
+            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id}), 400
+        
+        request_path = request.path
+        rp = request_path.split("/")
+        
+        h5 = hdf5_coord()
+        
+        resolutions = h5.get_resolutions(user_id, file_id)
+        
+        return {
+            '_links': {
+                '_self': request.base_url,
+                '_parent': request.url_root + 'api/3dcoord'
+            },
+            'resolutions': resolutions,
+        }
+        
 
 class ping(Resource):
     """
@@ -62,8 +95,8 @@ class ping(Resource):
             "name":    release.__rest_name__,
             "description": release.__description__,
             "_links" : {
-                '_self' : request.url_root + 'api/adjacency/ping',
-                '_parent' : request.url_root + 'api/adjacency'
+                '_self' : request.url_root + 'api/3dcoord/ping',
+                '_parent' : request.url_root + 'api/3dcoord'
             }
         }
         return res
