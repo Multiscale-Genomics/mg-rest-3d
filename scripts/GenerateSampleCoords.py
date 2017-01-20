@@ -10,7 +10,7 @@ chromosomes = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'X']
 
 for uuid in xrange(250):
     # Create the HDF5 file
-    filename ="sample_coords_03.hdf5"
+    filename ="sample_coords.hdf5"
     f = h5py.File(filename, "a")
     
     if str(resolution) in f.keys():
