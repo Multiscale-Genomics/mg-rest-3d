@@ -71,6 +71,10 @@ for jf in json_files:
         dset.attrs['components']     = objectdata['components']
         dset.attrs['source']         = objectdata['source']
         dset.attrs['TADbit_meta']    = json.dumps(metadata)
+        dset.attrs['dependencies']   = json.dumps(objectdata['dependencies'])
+        dset.attrs['restraints']     = json.dumps(models['restraints'])
+        if 'hic_data' in models:
+            dset.attrs['hic_data']     = json.dumps(models['hic_data'])
     
     clustergrps = clustersgrp.create_group(str(uuid))
     for c in xrange(len(clusters)):
@@ -115,10 +119,6 @@ for jf in json_files:
     model_param_ds.attrs['chromosome']   = objectdata['chrom'][0]
     model_param_ds.attrs['start']        = int(objectdata['chromStart'][0])
     model_param_ds.attrs['end']          = int(objectdata['chromEnd'][0])
-    model_param_ds.attrs['dependencies'] = json.dumps(objectdata['dependencies'])
-    model_param_ds.attrs['restraints']   = json.dumps(models['restraints'])
-    if 'hic_data' in models:
-        model_param_ds.attrs['hic_data']     = json.dumps(models['hic_data'])
     
     dset[current_size:current_size+(len(models['models'][0]['data'])/3), 0:1000, 0:3] += dnp
     
