@@ -55,6 +55,35 @@ class hdf5_coord:
             self.mpgrp     = self.meta['model_params']
             self.clusters  = self.meta['clusters']
             self.centroids = self.meta['centroids']
+            
+            dset = self.grp['data']
+            
+            if 'dependencies' in dset.attrs:
+                self.dependencies = json.loads(dset.attrs['dependencies'])
+            else:
+                self.dependencies = []
+            
+            if 'TADbit_meta' in dset.attrs:
+                self.meta_data   = json.loads(dset.attrs['TADbit_meta'])
+            else:
+                self.meta_data   = {}
+            
+            if 'hic_data' in dset.attrs:
+                self.hic_data    = json.loads(dset.attrs['hic_data'])
+            else:
+                self.hic_data    = {}
+            
+            if 'restraints' in dset.attrs:
+                self.restraints  = json.loads(dset.attrs['restraints'])
+            else:
+                self.restraints  = {}
+    
+    
+    def close(self):
+        """
+        
+        """
+        self.f.close()
     
     
     def set_resolution(self, resolution):
@@ -107,7 +136,7 @@ class hdf5_coord:
             'chromStart' : [mpds.attrs['start']],
             'start' : mpds.attrs['start'],
             'chrom' : mpds.attrs['chromosome'],
-            'dependencies' : json.loads(mpds.attrs['dependencies']),
+            'dependencies' : self.dependencies,
             'uuid' : region_id,
         }
     
@@ -186,11 +215,16 @@ class hdf5_coord:
         dset = self.grp['data']
         
         models = []
+        model_ds = dset[mpds.attrs['i']:mpds.attrs['j'], :, :]
         for mid in model_ids:
-            model_loc = list(mpds[:,0]).index(mid)
+            model_loc = list(mpds[:,0]).index(int(mid))
             
             # length x model_loc x coords
-            model = dset[mpds.attrs['i']:mpds.attrs['j'], model_loc, :]
+            # Using model_ds by pre-cutting then taking slices from that array
+            # is much quicker as the majority of the effort is in the initial
+            # slice. It is also slightly quicker for getting a single model
+            #model = dset[mpds.attrs['i']:mpds.attrs['j'], model_loc, :]
+            model = model_ds[:, model_loc, :]
             
             models.append(
                 {
@@ -199,24 +233,17 @@ class hdf5_coord:
                 }
             )
         
-        meta_data   = json.loads(dset.attrs['TADbit_meta'])
-        
-        if 'hic_data' in mpds.attrs:
-            hic_data    = json.loads(mpds.attrs['hic_data'])
-        
-        restraints  = json.loads(mpds.attrs['restraints'])
-        
-        object_data = get_object_data(resolution, region_id)
+        object_data = self.get_object_data(region_id)
         
         clusters  = []
         centroids = self.centroids[str(region_id)]
         
         return {
-            "metadata"   : meta_data,
+            "metadata"   : self.meta_data,
             "object"     : object_data,
             "models"     : models,
             "clusters"   : clusters,
             "centroids"  : centroids,
-            "restrainst" : retraints,
-            "hic_data"   : hic_data
+            "restrainst" : self.restraints,
+            "hic_data"   : self.hic_data
         }
