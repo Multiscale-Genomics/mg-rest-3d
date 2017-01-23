@@ -59,6 +59,7 @@ for uuid in xrange(250):
         dset.attrs['datatype']       = 'datatype'
         dset.attrs['components']     = 'components'
         dset.attrs['source']         = 'source'
+        dset.attrs['dependencies'] = json.dumps({'test' : 'test'})
     
     clustergrps = clustersgrp.create_group(str(uuid))
     for c in xrange(len(clusters)):
@@ -78,7 +79,7 @@ for uuid in xrange(250):
     model_param = []
     for ref in xrange(1000):
         cluster_id = random.choice(clusters)
-        model_param.append([ref, cluster_id])
+        model_param.append([ref, cluster_id[0]])
         
         for p in xrange(model_size):
             x = random.randint(-1000,1000)
@@ -97,7 +98,6 @@ for uuid in xrange(250):
     model_param_ds.attrs['chromosome'] = random.choice(chromosomes)
     model_param_ds.attrs['start'] = start
     model_param_ds.attrs['end'] = end
-    model_param_ds.attrs['dependencies'] = json.dumps({'test' : 'test'})
     
     dset[current_size:current_size+model_size, 0:1000, 0:3] += dnp
         
