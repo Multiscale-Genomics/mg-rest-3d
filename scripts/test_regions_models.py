@@ -22,9 +22,9 @@ from rest.hdf5_coord_reader import hdf5_coord
 h5 = hdf5_coord('test', '', 2000)
 
 # Get the resolutions
-print h5.get_resolutions()
-for i in xrange(1000):
-    x = h5.get_resolutions()
+#print h5.get_resolutions()
+#for i in xrange(1000):
+#    x = h5.get_resolutions()
 
 # Get the Chromosomes
 #print h5.get_chromosomes()
@@ -39,35 +39,32 @@ for i in xrange(1000):
 
 # Get models
 chr_list = h5.get_chromosomes()
-regions = h5.get_regions(random.choice(chr_list), 10000, 2000000)
-#region_id = random.randint(0, 249)
-#models = h5.get_models(random.choice(regions))
+#print chr_list
+chr_id = random.choice(chr_list)
+chr_id = 'chr2R'
+#print chr_id
+regions = h5.get_regions(chr_id, 10000, 2000000)
+#print regions
+#region_id = random.choice(regions)
+#print region_id
+#model_ids = h5.get_models(region_id)
+#print model_ids
+#models = h5.get_model(region_id, [random.randint(0, 999)])
 #print models
 #for i in xrange(1000):
 #    #region_id = random.randint(0, 249)
 #    x = h5.get_models(random.choice(regions))
 
-"""
+
 for i in xrange(100):
-    region_id = random.randint(0, 249)
-    ref  = random.randint(0, 999)
+    #region_id = random.choice(regions)
+    region_id = 87
+    model_id  = [random.randint(0, 999), random.randint(0, 999), random.randint(0, 999), random.randint(0, 999), random.randint(0, 999)]
+    #model_id  = [0]
     
     # Get coordinates
-    model = h5.get_model('test', '', 2000, region_id, ref)
-    coord     = [str(x) for coords in model for x in coords]
+    models = h5.get_model(region_id, model_id)
     
-    region = {
-        "metadata" : {},
-        "object"   : {
-            'region_id' : region_id
-        },
-        "models"   : [
-            {
-                "ref"  : ref,
-                "data" : coord[0:10]
-            }
-        ]
-    }
-    
-    print region
-"""
+    print models
+
+h5.close()
