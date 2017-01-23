@@ -63,7 +63,7 @@ for uuid in xrange(250):
     clustergrps = clustersgrp.create_group(str(uuid))
     for c in xrange(len(clusters)):
         clustersds = clustergrps.create_dataset(str(c), data=clusters[c], chunks=True, compression="gzip")
-    centroidsds = centroidsgrp.create_dataset(str(uuid), centroids, chunks=True, compression="gzip")
+    centroidsds = centroidsgrp.create_dataset(str(uuid), data=centroids, chunks=True, compression="gzip")
     
     current_size = len(dset)
     if current_size == 1:
