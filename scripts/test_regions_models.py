@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import random
+import random, json
 from rest.hdf5_coord_reader import hdf5_coord
 
 h5 = hdf5_coord('test', '', 2000)
@@ -55,16 +55,18 @@ regions = h5.get_regions(chr_id, 10000, 2000000)
 #    #region_id = random.randint(0, 249)
 #    x = h5.get_models(random.choice(regions))
 
-
+f_out = open('stdout.txt', 'w')
 for i in xrange(100):
     #region_id = random.choice(regions)
     region_id = 87
-    model_id  = [random.randint(0, 999), random.randint(0, 999), random.randint(0, 999), random.randint(0, 999), random.randint(0, 999)]
+    #model_id  = [random.randint(0, 999), random.randint(0, 999), random.randint(0, 999), random.randint(0, 999), random.randint(0, 999)]
+    model_id  = [random.randint(0, 999)]
     #model_id  = [0]
     
     # Get coordinates
     models = h5.get_model(region_id, model_id)
     
-    print models
+    f_out.write(json.dumps(models) + "\n")
 
+f_out.close()
 h5.close()
