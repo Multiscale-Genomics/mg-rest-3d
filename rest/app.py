@@ -371,19 +371,14 @@ class GetModel(Resource):
         h5 = hdf5_coord()
         
         model_ids = model_str.split(',')
-        models = []
-        for mid in model_ids:
-            model = h5.get_model(user_id, file_id, resolution, region_id, model_ids)
-            models.append([str(x) for coords in model for x in coords])
+        models = h5.get_model(user_id, file_id, region_id, model_ids)
         
         return {
             '_links': {
                 '_self': request.base_url,
                 '_parent': request.url_root + 'api/3dcoord'
             },
-            'region_id'  : region_id,
-            'meta_data' : ,
-            'models' : models
+            models
         }
 
 
