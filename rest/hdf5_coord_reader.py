@@ -33,6 +33,18 @@ class hdf5_coord:
     def __init__(self, user_id = 'test', file_id = '', resolution = None):
         """
         Initialise the module and 
+        
+        Parameters
+        ----------
+        user_id : str
+            Identifier to uniquely locate the users files. Can be set to 
+            "common" if the files can be shared between users
+        file_id : str
+            Location of the file in the file system
+        resolution : int (Optional)
+            Level of resolution. This is optional, but only the functions
+            get_resolutions() and set_resolutions() can be called. Once the
+            resolution has been set then all functions are callable.
         """
         
         self.test_file = '../sample_coords.hdf5'
@@ -81,14 +93,32 @@ class hdf5_coord:
     
     def close(self):
         """
-        
+        Tidy function to close file handles
         """
         self.f.close()
     
     
-    def set_resolution(self, resolution):
+    def get_resolutions(self):
+        """
+        List resolutions that models have been generated for
+        
+        Returns
+        -------
+        list : str
+            Available levels of resolution that can be set
         """
         
+        return self.f.keys()
+    
+    
+    def set_resolution(self, resolution):
+        """
+        Set, or change, the resolution level
+        
+        Parameters
+        ----------
+        resolution : int
+            Level of resolution
         """
         
         self.resolution = resolution
@@ -102,7 +132,12 @@ class hdf5_coord:
     
     def get_resolution(self):
         """
+        List the current level of rseolution
         
+        Returns
+        -------
+        resolution : int
+            Current level of resolution
         """
         
         return self.resolution
@@ -110,7 +145,17 @@ class hdf5_coord:
     
     def get_object_data(self, region_id):
         """
+        Prepare the object header data structure ready for printing
         
+        Parameters
+        ----------
+        region_id : int
+            Region that is getting downloaded
+        
+        Returns
+        -------
+        objectdata : dict
+            All headers and values required for the JSON output
         """
         
         if self.resolution == None:
@@ -143,26 +188,50 @@ class hdf5_coord:
     
     def get_clusters(self, region_id):
         """
+        List all clusters of models
         
+        Returns
+        -------
+        clusters : list
+            List of models in each cluster
         """
         
         if self.resolution == None:
             return {}
         
-        clustergrps = self.clusters[str(region_id)]
+        # Need to loop through structure
+        clustersgrp = self.clusters[region_id]
+        
+        clusters = []
+        for cluster in clustersgrp:
+            clusters.append(list(cluster[:]))
+        return clusters
     
     
-    def get_resolutions(self):
+    def get_centroids(self, region_id):
         """
-        List resolutions that models have been generated for
+        List the centroid models for each cluster
+        
+        Returns
+        -------
+        centroids : list
+            List of the centroid models for each cluster
         """
         
-        return self.f.keys()
+        if self.resolution == None:
+            return {}
+        
+        return self.centroids[region_id]
     
     
     def get_chromosomes(self):
         """
-        List of chromosomes that haver models at a given resolution
+        List of chromosomes that have models at a given resolution
+        
+        Returns
+        -------
+        chromosomes : list
+            List of chromosomes at the set resolution
         """
         
         if self.resolution == None:
@@ -174,6 +243,20 @@ class hdf5_coord:
     def get_regions(self, chr_id, start, end):
         """
         List regions that are within a given range on a chromosome
+        
+        Parameters
+        ----------
+        chr_id : str
+            Chromosome ID
+        start : int
+            Start position
+        end : int
+            Stop position
+        
+        Returns
+        -------
+        regions : list
+            List of region IDs whose parameters match those provided
         """
         
         if self.resolution == None:
@@ -206,6 +289,30 @@ class hdf5_coord:
         Get the coordinates within a defined region on a specific chromosome.
         If the model_id is not returned the the consensus models for that region
         are returned
+        
+        Parameters
+        ----------
+        region_id : str
+            Region ID
+        model_ids : list
+            List of model IDs for the models that are required
+        
+        Returns
+        -------
+        dict
+            metadata : dict
+                Relevant extra meta data added by TADbit
+            object : dict
+                Key value pair of information about the region
+            models : list
+                List of dictionaries for each model
+            clusters : list
+                List of models for each cluster
+            centroids : list
+                List of all centroid models
+            restraints : list
+                List of retraints for each position
+            hic_data : dict
         """
         
         if self.resolution == None:
@@ -243,7 +350,7 @@ class hdf5_coord:
             "object"     : object_data,
             "models"     : models,
             "clusters"   : clusters,
-            "centroids"  : centroids,
+            "centroids"  : list(centroids[:]),
             "restrainst" : self.restraints,
             "hic_data"   : self.hic_data
         }
