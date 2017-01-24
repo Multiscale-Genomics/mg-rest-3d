@@ -374,9 +374,8 @@ class GetModel(Resource):
         models = h5.get_model(user_id, file_id, region_id, model_ids)
         
         models['_links'] = {
-                '_self': request.base_url,
-                '_parent': request.url_root + 'api/3dcoord'
-            }
+            '_self': request.base_url,
+            '_parent': request.url_root + 'api/3dcoord'
         }
         
         return models
