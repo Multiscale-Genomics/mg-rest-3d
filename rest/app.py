@@ -47,7 +47,8 @@ class GetEndPoints(Resource):
 
 class GetResolutions(Resource):
     """
-    
+    Class to handle the http requests for returning information about the
+    resolutions that models have been generated for
     """
     
     def usage(self, error_message, status_code, parameters = {}):
@@ -106,7 +107,8 @@ class GetResolutions(Resource):
 
 class GetChromosomes(Resource):
     """
-    
+    Class to handle the http requests for returning information about the
+    chromosomes that the models have been generated across
     """
     
     def usage(self, error_message, status_code, parameters = {}):
@@ -171,7 +173,8 @@ class GetChromosomes(Resource):
 
 class GetRegions(Resource):
     """
-    
+    Class to handle the http requests for returning information about the 
+    regions that are available in a given region and level of resolution
     """
     
     def usage(self, error_message, status_code, parameters = {}):
@@ -245,7 +248,8 @@ class GetRegions(Resource):
 
 class GetModels(Resource):
     """
-    
+    Class to handle the http requests for returning information about the models
+    that are available within a given region.
     """
     
     def usage(self, error_message, status_code, parameters = {}):
@@ -310,7 +314,9 @@ class GetModels(Resource):
 
 class GetModel(Resource):
     """
-    
+    Class to handle the http requests for returning the models from a given
+    region. The list of models is a comma separated list that can return
+    multiple models from the same region
     """
     
     def usage(self, error_message, status_code, parameters = {}):
