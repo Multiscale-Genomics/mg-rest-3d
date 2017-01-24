@@ -47,16 +47,16 @@ ftp_root = ftp://ftp.multiscalegenomics.eu/test
 ```
 git clone https://github.com/Multiscale-Genomics/mg-rest-dm.git
 
-cd mg-rest-service
+cd mg-rest-3d
 pyenv virtualenv 2.7.12 mg-rest-3d
 pyenv activate mg-rest-3d
 pip install git+https://github.com/Multiscale-Genomics/mg-dm-api.git
-pip install --editable .
+pip install -e .
 pip deactivate
 ```
 Starting the service:
 ```
-nohup ${PATH_2_PYENV}/versions/2.7.12/envs/mg-rest-3d/bin/waitress-serve --listen=127.0.0.1:5001 rest.app:app &
+nohup ${PATH_2_PYENV}/versions/2.7.12/envs/mg-rest-3d/bin/waitress-serve --listen=127.0.0.1:5003 rest.app:app &
 ```
 
 # Generating test data
