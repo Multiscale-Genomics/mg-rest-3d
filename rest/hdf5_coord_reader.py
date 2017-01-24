@@ -200,11 +200,12 @@ class hdf5_coord:
             return {}
         
         # Need to loop through structure
-        clustersgrp = self.clusters[region_id]
+        clustersgrp = self.clusters[str(region_id)]
+        
         
         clusters = []
-        for cluster in clustersgrp:
-            clusters.append(list(cluster[:]))
+        for i in xrange(len(clustersgrp)):
+            clusters.append(list(clustersgrp[str(i)][:]))
         return clusters
     
     
@@ -342,7 +343,7 @@ class hdf5_coord:
         
         object_data = self.get_object_data(region_id)
         
-        clusters  = []
+        clusters  = self.get_clusters(region_id)
         centroids = self.centroids[str(region_id)]
         
         return {
