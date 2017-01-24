@@ -41,9 +41,8 @@ h5 = hdf5_coord('test', '', 2000)
 chr_list = h5.get_chromosomes()
 #print chr_list
 chr_id = random.choice(chr_list)
-chr_id = 'chr2R'
 #print chr_id
-regions = h5.get_regions(chr_id, 10000, 2000000)
+regions = h5.get_regions(chr_id, 0, 2000000)
 #print regions
 #region_id = random.choice(regions)
 #print region_id
@@ -55,13 +54,13 @@ regions = h5.get_regions(chr_id, 10000, 2000000)
 #    #region_id = random.randint(0, 249)
 #    x = h5.get_models(random.choice(regions))
 
+#print regions
 f_out = open('stdout.txt', 'w')
 for i in xrange(100):
-    #region_id = random.choice(regions)
-    region_id = 87
+    region_list = random.choice(regions)
+    region_id = region_list[0]
     #model_id  = [random.randint(0, 999), random.randint(0, 999), random.randint(0, 999), random.randint(0, 999), random.randint(0, 999)]
     model_id  = [random.randint(0, 999)]
-    #model_id  = [0]
     
     # Get coordinates
     models = h5.get_model(region_id, model_id)
