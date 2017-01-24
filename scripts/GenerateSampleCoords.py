@@ -59,7 +59,7 @@ for uuid in xrange(250):
         dset.attrs['datatype']       = 'datatype'
         dset.attrs['components']     = 'components'
         dset.attrs['source']         = 'source'
-        dset.attrs['dependencies'] = json.dumps({'test' : 'test'})
+        dset.attrs['dependencies']   = json.dumps({'test' : 'test'})
     
     clustergrps = clustersgrp.create_group(str(uuid))
     for c in xrange(len(clusters)):
