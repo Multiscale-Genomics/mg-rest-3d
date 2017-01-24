@@ -373,13 +373,13 @@ class GetModel(Resource):
         model_ids = model_str.split(',')
         models = h5.get_model(user_id, file_id, region_id, model_ids)
         
-        return {
-            '_links': {
+        models['_links'] = {
                 '_self': request.base_url,
                 '_parent': request.url_root + 'api/3dcoord'
-            },
-            models
+            }
         }
+        
+        return models
 
 
 class ping(Resource):
