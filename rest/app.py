@@ -17,7 +17,7 @@ limitations under the License.
 from flask import Flask, make_response, request
 from flask_restful import Api, Resource
 
-from hdf5_coord_reader import hdf5_coord
+from .hdf5_coord_reader import hdf5_coord
 
 app = Flask(__name__)
 #app.config['DEBUG'] = False
@@ -35,7 +35,7 @@ class GetEndPoints(Resource):
             '_links': {
                 '_self': request.base_url,
                 '_resolutions': request.url_root + 'api/3dcoord/resolutions',
-                '_chromosomes': request.url_root + 'api/3dcoord/getInteractions',
+                '_chromosomes': request.url_root + 'api/3dcoord/chromosomes',
                 '_regions': request.url_root + 'api/3dcoord/regions',
                 '_models': request.url_root + 'api/3dcoord/models',
                 '_model': request.url_root + 'api/3dcoord/model',
@@ -92,9 +92,9 @@ class GetResolutions(Resource):
         request_path = request.path
         rp = request_path.split("/")
         
-        h5 = hdf5_coord()
+        h5 = hdf5_coord(user_id, file_id)
         
-        resolutions = h5.get_resolutions(user_id, file_id)
+        resolutions = h5.get_resolutions()
         
         return {
             '_links': {
@@ -157,9 +157,9 @@ class GetChromosomes(Resource):
             # ERROR - one of the parameters is not of integer type
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution}), 400
         
-        h5 = hdf5_coord()
+        h5 = hdf5_coord(user_id, file_id, resolution)
         
-        chromosomes = h5.get_chromosomes(user_id, file_id, resolution)
+        chromosomes = h5.get_chromosomes()
         
         return {
             '_links': {
@@ -231,9 +231,9 @@ class GetRegions(Resource):
             # ERROR - one of the parameters is not of integer type
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'chr_id' : chr_id, 'start' : start, 'end' : end}), 400
         
-        h5 = hdf5_coord()
+        h5 = hdf5_coord(user_id, file_id, resolution)
         
-        regions = h5.get_regions(user_id, file_id, resolution, chr_id, start, end)
+        regions = h5.get_regions(chr_id, start, end)
         
         return {
             '_links': {
@@ -261,6 +261,7 @@ class GetModels(Resource):
                     'parameters' : {
                         'user_id'   : ['User ID', 'str', 'REQUIRED'],
                         'file_id'   : ['File ID', 'str', 'REQUIRED'],
+                        'res'       : ['Resolution', 'int', 'REQUIRED'],
                         'region_id' : ['Regions ID', 'str', 'REQUIRED'],
                     }
                 }
@@ -281,6 +282,7 @@ class GetModels(Resource):
         user_id = request.args.get('user_id')
         file_id = request.args.get('file_id')
         resolution = request.args.get('res')
+        region_id = request.args.get('region_id')
         
         params = [user_id, file_id, resolution, region_id]
 
@@ -298,9 +300,9 @@ class GetModels(Resource):
             # ERROR - one of the parameters is not of integer type
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id}), 400
         
-        h5 = hdf5_coord()
+        h5 = hdf5_coord(user_id, file_id, resolution)
         
-        models = h5.get_models(user_id, file_id, region_id)
+        models = h5.get_models(region_id)
         
         return {
             '_links': {
@@ -368,10 +370,10 @@ class GetModel(Resource):
             # ERROR - one of the parameters is not of integer type
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
         
-        h5 = hdf5_coord()
+        h5 = hdf5_coord(user_id, file_id, resolution)
         
         model_ids = model_str.split(',')
-        models = h5.get_model(user_id, file_id, region_id, model_ids)
+        models = h5.get_model(region_id, model_ids)
         
         models['_links'] = {
             '_self': request.base_url,
