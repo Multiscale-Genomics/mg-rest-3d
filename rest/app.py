@@ -96,6 +96,8 @@ class GetResolutions(Resource):
         
         resolutions = h5.get_resolutions()
         
+        h5.close()
+        
         return {
             '_links': {
                 '_self': request.base_url,
@@ -160,6 +162,8 @@ class GetChromosomes(Resource):
         h5 = hdf5_coord(user_id, file_id, resolution)
         
         chromosomes = h5.get_chromosomes()
+        
+        h5.close()
         
         return {
             '_links': {
@@ -235,6 +239,8 @@ class GetRegions(Resource):
         
         regions = h5.get_regions(chr_id, start, end)
         
+        h5.close()
+        
         return {
             '_links': {
                 '_self': request.base_url,
@@ -309,6 +315,8 @@ class GetModels(Resource):
             '_parent': request.url_root + 'api/3dcoord'
         }
         
+        h5.close()
+        
         return models
 
 
@@ -377,6 +385,8 @@ class GetModel(Resource):
             '_self': request.base_url,
             '_parent': request.url_root + 'api/3dcoord'
         }
+        
+        h5.close()
         
         return models
 

@@ -165,24 +165,24 @@ class hdf5_coord:
         dset = self.grp['data']
         
         return {
-            'title' : dset.attrs['title'],
-            'experimentType' : dset.attrs['experimentType'],
-            'species' : dset.attrs['species'],
-            'project' : dset.attrs['project'],
-            'identifier' : dset.attrs['identifier'],
-            'assembly' : dset.attrs['assembly'],
-            'cellType' : dset.attrs['cellType'],
-            'resolution' : dset.attrs['resolution'],
-            'datatype' : dset.attrs['datatype'],
-            'components' : dset.attrs['components'],
-            'source' : dset.attrs['source'],
-            'chromEnd' : [mpds.attrs['end']],
-            'end' : mpds.attrs['end'],
-            'chromStart' : [mpds.attrs['start']],
-            'start' : mpds.attrs['start'],
+            'title' : dset.attrs['title'].decode('utf-8'),
+            'experimentType' : dset.attrs['experimentType'].decode('utf-8'),
+            'species' : dset.attrs['species'].decode('utf-8'),
+            'project' : dset.attrs['project'].decode('utf-8'),
+            'identifier' : dset.attrs['identifier'].decode('utf-8'),
+            'assembly' : dset.attrs['assembly'].decode('utf-8'),
+            'cellType' : dset.attrs['cellType'].decode('utf-8'),
+            'resolution' : dset.attrs['resolution'].decode('utf-8'),
+            'datatype' : dset.attrs['datatype'].decode('utf-8'),
+            'components' : dset.attrs['components'].decode('utf-8'),
+            'source' : dset.attrs['source'].decode('utf-8'),
+            'chromEnd' : [np.asscalar(mpds.attrs['end'])],
+            'end' : np.asscalar(mpds.attrs['end']),
+            'chromStart' : [np.asscalar(mpds.attrs['start'])],
+            'start' : np.asscalar(mpds.attrs['start']),
             'chrom' : mpds.attrs['chromosome'],
             'dependencies' : self.dependencies,
-            'uuid' : region_id,
+            'uuid' : region_id.decode('utf-8'),
         }
     
     
@@ -205,7 +205,7 @@ class hdf5_coord:
         
         clusters = []
         for i in range(len(clustersgrp)):
-            clusters.append(list(clustersgrp[str(i)][:]))
+            clusters.append([np.asscalar(x) for x in clustersgrp[str(i)][:]])
         return clusters
     
     
@@ -222,7 +222,9 @@ class hdf5_coord:
         if self.resolution == None:
             return {}
         
-        return self.centroids[region_id]
+        c = [np.asscalar(x) for x in self.centroids[region_id]]
+        
+        return c
     
     
     def get_chromosomes(self):
