@@ -159,8 +159,20 @@ class GetChromosomes(Resource):
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution}), 400
         
         h5 = hdf5_coord(user_id, file_id, resolution)
-        chromosomes = h5.get_chromosomes()
+        chromosome_list = h5.get_chromosomes()
         h5.close()
+        
+        data = {}
+        
+        chromosomes = []
+        for c in chromosome_list:
+            chromosomes.append(
+                {
+                    'chromosome' : c,
+                    '_links' : {
+                        '_regions' : request.url_root + 'api/3dcoord/regions?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chr_id=' + str(region_id) + '&start=0&end=1000000000'
+                }
+            )
         
         return {
             '_links': {
@@ -170,6 +182,28 @@ class GetChromosomes(Resource):
             'resolution'  : resolution,
             'chromosomes' : chromosomes
         }
+        
+        models = {}
+        models['model_list'] = [
+            {
+                'model' : m[0],
+                'cluster' : m[1],
+                '_links' : {
+                    '_self' : request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
+                }
+            } for m in model_list
+        ]
+        
+        data['resolution'] = resolution
+        data['chromosomes'] = chromosomes
+        
+        data['_links'] = {
+            '_self': request.base_url,
+            '_parent': request.url_root + 'api/3dcoord'
+            '_resolution' : request.url_root + 'api/3dcoord/resolutions?user_id' + user_id + '&file_id=' + file_id
+        }
+        
+        return data
 
 
 class GetRegions(Resource):
@@ -233,9 +267,7 @@ class GetRegions(Resource):
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'chr_id' : chr_id, 'start' : start, 'end' : end}), 400
         
         h5 = hdf5_coord(user_id, file_id, resolution)
-        
         regions = h5.get_regions(chr_id, start, end)
-        
         h5.close()
         
         return {
@@ -322,8 +354,6 @@ class GetModels(Resource):
             '_self': request.base_url,
             '_parent': request.url_root + 'api/3dcoord'
         }
-        
-        
         
         return models
 
