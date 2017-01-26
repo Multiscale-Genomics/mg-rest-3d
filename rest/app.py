@@ -195,7 +195,7 @@ class GetChromosomes(Resource):
         data['_links'] = {
             '_self': request.base_url,
             '_parent': request.url_root + 'api/3dcoord',
-            '_resolution' : request.url_root + 'api/3dcoord/resolutions?user_id' + user_id + '&file_id=' + file_id
+            '_resolution' : request.url_root + 'api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id
         }
         
         return data
@@ -284,7 +284,7 @@ class GetRegions(Resource):
         data['_links'] = {
             '_self': request.base_url,
             '_parent': request.url_root + 'api/3dcoord',
-            '_resolution' : request.url_root + 'api/3dcoord/resolutions?user_id' + user_id + '&file_id=' + file_id,
+            '_resolution' : request.url_root + 'api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id,
             '_chromosomes' : request.url_root + 'api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
         }
         
