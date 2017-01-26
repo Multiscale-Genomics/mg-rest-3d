@@ -30,7 +30,7 @@ for uuid in range(250):
     filename ="sample_coords.hdf5"
     f = h5py.File(filename, "a")
     
-    if str(resolution) in f.keys():
+    if str(resolution) in f:
         grp = f[str(resolution)]
         dset = grp['data']
         

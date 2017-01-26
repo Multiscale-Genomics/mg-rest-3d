@@ -38,9 +38,9 @@ for jf in json_files:
     filename ="test_02.hdf5"
     f = h5py.File(filename, "a")
     
-    print file_name[-1] + ' - ' + file_name[-3] + "\t" + objectdata['chrom'][0] + ' : ' + str(objectdata['chromStart'][0]) + ' - ' + str(objectdata['chromEnd'][0]) + " | " + str(int(objectdata['chromEnd'][0]-objectdata['chromStart'][0])) + " - " + str(len(models['models'][0]['data']))
+    print(file_name[-1] + ' - ' + file_name[-3] + "\t" + objectdata['chrom'][0] + ' : ' + str(objectdata['chromStart'][0]) + ' - ' + str(objectdata['chromEnd'][0]) + " | " + str(int(objectdata['chromEnd'][0]-objectdata['chromStart'][0])) + " - " + str(len(models['models'][0]['data'])))
     
-    if str(resolution) in f.keys():
+    if str(resolution) in f:
         grp = f[str(resolution)]
         dset = grp['data']
         
@@ -77,7 +77,7 @@ for jf in json_files:
             dset.attrs['hic_data']     = json.dumps(models['hic_data'])
     
     clustergrps = clustersgrp.create_group(str(uuid))
-    for c in xrange(len(clusters)):
+    for c in range(len(clusters)):
         clustersds = clustergrps.create_dataset(str(c), data=clusters[c], chunks=True, compression="gzip")
     
     centroidsds = centroidsgrp.create_dataset(str(uuid), data=models['centroids'], chunks=True, compression="gzip")
