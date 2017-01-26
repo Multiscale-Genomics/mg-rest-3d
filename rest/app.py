@@ -278,7 +278,7 @@ class GetRegions(Resource):
             )
         
         data['resolution'] = resolution,
-        data['chromosomes'] = chr_id,
+        data['chromosome'] = chr_id,
         data['regions'] = regions
         
         data['_links'] = {
