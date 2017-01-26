@@ -94,16 +94,29 @@ class GetResolutions(Resource):
         rp = request_path.split("/")
         
         h5 = hdf5_coord(user_id, file_id)
-        resolutions = h5.get_resolutions()
+        resolution_list = h5.get_resolutions()
         h5.close()
         
-        return {
-            '_links': {
-                '_self': request.base_url,
-                '_parent': request.url_root + 'api/3dcoord'
-            },
-            'resolutions': resolutions,
+        data = {}
+        
+        resolutions = []
+        for r in resolution_list:
+            resolutions.append(
+                {
+                    'resolution' : r,
+                    '_links' : {
+                        '_chromosomes' : request.url_root + 'api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
+                }
+            )
+        
+        data['resolutions'] = resolutions
+        
+        data['_links'] = {
+            '_self': request.base_url,
+            '_parent': request.url_root + 'api/3dcoord'
         }
+        
+        return data
 
 
 class GetChromosomes(Resource):
@@ -254,6 +267,7 @@ class GetRegions(Resource):
             '_links': {
                 '_self': request.base_url,
                 '_parent': request.url_root + 'api/3dcoord'
+                '_chromosomes' : request.url_root + 'api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
             },
             'resolution'  : resolution,
             'chromosomes' : chr_id,
