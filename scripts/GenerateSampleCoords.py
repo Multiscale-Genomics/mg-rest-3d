@@ -25,7 +25,7 @@ clusters_hierarchy = [[0, 1, 2], [3, 4], [5], [6]]
 centroids   = [1, 10, 100, 150, 200]
 chromosomes = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'X']
 
-for uuid in xrange(250):
+for uuid in range(250):
     # Create the HDF5 file
     filename ="sample_coords.hdf5"
     f = h5py.File(filename, "a")
@@ -64,7 +64,7 @@ for uuid in xrange(250):
     
     clustergrps = clustersgrp.create_group(str(uuid))
     for c in range(len(clusters_hierarchy)):
-        clustersds = clustergrps.create_dataset(str(c), data=clusters[c], chunks=True, compression="gzip")
+        clustersds = clustergrps.create_dataset(str(c), data=clusters_hierarchy[c], chunks=True, compression="gzip")
     centroidsds = centroidsgrp.create_dataset(str(uuid), data=centroids, chunks=True, compression="gzip")
     
     current_size = len(dset)
@@ -78,11 +78,11 @@ for uuid in xrange(250):
     dnp = np.zeros([model_size, 1000, 3], dtype='int32')
     
     model_param = []
-    for ref in xrange(1000):
+    for ref in range(1000):
         cluster_id = random.choice(clusters)
-        model_param.append([ref, cluster_id[0]])
+        model_param.append([ref, cluster_id])
         
-        for p in xrange(model_size):
+        for p in range(model_size):
             x = random.randint(-1000,1000)
             y = random.randint(-1000,1000)
             z = random.randint(-1000,1000)
@@ -105,7 +105,7 @@ for uuid in xrange(250):
     f.close()
     
     if (uuid+1) % 50 == 0:
-        print uuid+1
+        print(uuid+1)
     
     
         
