@@ -19,6 +19,7 @@ from flask_restful import Api, Resource
 
 from .hdf5_coord_reader import hdf5_coord
 
+
 app = Flask(__name__)
 #app.config['DEBUG'] = False
 
@@ -93,9 +94,7 @@ class GetResolutions(Resource):
         rp = request_path.split("/")
         
         h5 = hdf5_coord(user_id, file_id)
-        
         resolutions = h5.get_resolutions()
-        
         h5.close()
         
         return {
@@ -160,9 +159,7 @@ class GetChromosomes(Resource):
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution}), 400
         
         h5 = hdf5_coord(user_id, file_id, resolution)
-        
         chromosomes = h5.get_chromosomes()
-        
         h5.close()
         
         return {
@@ -307,15 +304,26 @@ class GetModels(Resource):
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id}), 400
         
         h5 = hdf5_coord(user_id, file_id, resolution)
+        model_list = h5.get_models(region_id)
+        h5.close()
         
-        models = h5.get_models(region_id)
+        models = {}
+        models['model_list'] = [
+            {
+                'model' : m[0],
+                'cluster' : m[1],
+                '_links' : {
+                    '_self' : request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
+                }
+            } for m in model_list
+        ]
         
         models['_links'] = {
             '_self': request.base_url,
             '_parent': request.url_root + 'api/3dcoord'
         }
         
-        h5.close()
+        
         
         return models
 
@@ -397,7 +405,7 @@ class ping(Resource):
     """
     
     def get(self):
-        import release
+        from . import release
         res = {
             "status":  "ready",
             "version": release.__version__,

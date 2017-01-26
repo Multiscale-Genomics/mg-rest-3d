@@ -108,7 +108,7 @@ class hdf5_coord:
             Available levels of resolution that can be set
         """
         
-        return self.f.keys()
+        return [res for res in self.f]
     
     
     def set_resolution(self, resolution):
@@ -240,7 +240,7 @@ class hdf5_coord:
         if self.resolution == None:
             return {}
         
-        return list(set([self.mpgrp[region_id].attrs['chromosome'] for region_id in self.mpgrp.keys()]))
+        return list(set([self.mpgrp[region_id].attrs['chromosome'].decode('utf-8') for region_id in self.mpgrp.keys()]))
     
     
     def get_regions(self, chr_id, start, end):
