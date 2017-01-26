@@ -324,7 +324,7 @@ class hdf5_coord:
         mpds = self.mpgrp[str(region_id)]
         dset = self.grp['data']
         
-        if model_ids is None or model_ids[0] == 'centroids':
+        if model_ids[0] == 'centroids':
             model_ids = self.get_centroids(region_id)
         
         models = []
