@@ -260,19 +260,33 @@ class GetRegions(Resource):
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'chr_id' : chr_id, 'start' : start, 'end' : end}), 400
         
         h5 = hdf5_coord(user_id, file_id, resolution)
-        regions = h5.get_regions(chr_id, start, end)
+        region_list = h5.get_regions(chr_id, start, end)
         h5.close()
         
-        return {
-            '_links': {
-                '_self': request.base_url,
-                '_parent': request.url_root + 'api/3dcoord'
-                '_chromosomes' : request.url_root + 'api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
-            },
-            'resolution'  : resolution,
-            'chromosomes' : chr_id,
-            'regions'     : regions
+        data = {}
+        regions = []
+        for r in region_list:
+            regions.append(
+                {
+                    'region_id' : r,
+                    '_links' : {
+                        '_models' : request.url_root + 'api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + r
+                    }
+                }
+            )
+        
+        data['resolution'] = resolution,
+        data['chromosomes'] = chr_id,
+        data['regions'] = regions
+        
+        data['_links'] = {
+            '_self': request.base_url,
+            '_parent': request.url_root + 'api/3dcoord'
+            '_resolution' : request.url_root + 'api/3dcoord/resolutions?user_id' + user_id + '&file_id=' + file_id
+            '_chromosomes' : request.url_root + 'api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
         }
+        
+        return data
 
 
 class GetModels(Resource):
@@ -339,7 +353,7 @@ class GetModels(Resource):
                 'model' : m[0],
                 'cluster' : m[1],
                 '_links' : {
-                    '_self' : request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
+                    '_model' : request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
                 }
             } for m in model_list
         ]
