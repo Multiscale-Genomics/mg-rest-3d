@@ -259,10 +259,10 @@ class GetModels(Resource):
                         '_parent': request.url_root + 'api/3dcoord'
                     },
                     'parameters' : {
-                        'user_id'   : ['User ID', 'str', 'REQUIRED'],
-                        'file_id'   : ['File ID', 'str', 'REQUIRED'],
-                        'res'       : ['Resolution', 'int', 'REQUIRED'],
-                        'region_id' : ['Regions ID', 'str', 'REQUIRED'],
+                        'user_id' : ['User ID', 'str', 'REQUIRED'],
+                        'file_id' : ['File ID', 'str', 'REQUIRED'],
+                        'res'     : ['Resolution', 'int', 'REQUIRED'],
+                        'region'  : ['Regions ID', 'str', 'REQUIRED'],
                     }
                 }
         message = {
@@ -282,7 +282,7 @@ class GetModels(Resource):
         user_id = request.args.get('user_id')
         file_id = request.args.get('file_id')
         resolution = request.args.get('res')
-        region_id = request.args.get('region_id')
+        region_id = request.args.get('region')
         
         params = [user_id, file_id, resolution, region_id]
 
@@ -304,14 +304,12 @@ class GetModels(Resource):
         
         models = h5.get_models(region_id)
         
-        return {
-            '_links': {
-                '_self': request.base_url,
-                '_parent': request.url_root + 'api/3dcoord'
-            },
-            'region_id' : region_id,
-            'models'    : models
+        models['_links'] = {
+            '_self': request.base_url,
+            '_parent': request.url_root + 'api/3dcoord'
         }
+        
+        return models
 
 
 class GetModel(Resource):
@@ -328,10 +326,10 @@ class GetModel(Resource):
                         '_parent': request.url_root + 'api/3dcoord'
                     },
                     'parameters' : {
-                        'user_id'   : ['User ID', 'str', 'REQUIRED'],
-                        'file_id'   : ['File ID', 'str', 'REQUIRED'],
-                        'region_id' : ['Regions ID', 'str', 'REQUIRED'],
-                        'model_id'  : ['Model ID', 'str', 'REQUIRED'],
+                        'user_id' : ['User ID', 'str', 'REQUIRED'],
+                        'file_id' : ['File ID', 'str', 'REQUIRED'],
+                        'region'  : ['Regions ID', 'str', 'REQUIRED'],
+                        'model'   : ['Model ID', 'str', 'REQUIRED'],
                     }
                 }
         message = {
@@ -446,7 +444,7 @@ api.add_resource(GetModels, "/api/3dcoord/models", endpoint='models')
 #    - user_id   - (string)
 #    - region_id - region_id (int)
 #    - model_id  - model_id (string)
-api.add_resource(GetModels, "/api/3dcoord/model", endpoint='model')
+api.add_resource(GetModel, "/api/3dcoord/model", endpoint='model')
 
 #   Service ping
 api.add_resource(ping, "/api/3dcoord/ping", endpoint='adjacency-ping')

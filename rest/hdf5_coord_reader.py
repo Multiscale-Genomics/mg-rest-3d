@@ -204,7 +204,7 @@ class hdf5_coord:
         
         
         clusters = []
-        for i in xrange(len(clustersgrp)):
+        for i in range(len(clustersgrp)):
             clusters.append(list(clustersgrp[str(i)][:]))
         return clusters
     
@@ -337,7 +337,7 @@ class hdf5_coord:
             models.append(
                 {
                     "ref" : mid,
-                    "data" : [str(x) for coords in model for x in coords]
+                    "data" : list([str(x) for coords in model for x in coords])
                 }
             )
         
