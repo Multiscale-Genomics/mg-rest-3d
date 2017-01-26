@@ -352,8 +352,8 @@ class GetModels(Resource):
         models = {}
         models['model_list'] = [
             {
-                'model' : m[0],
-                'cluster' : m[1],
+                'model' : str(m[0]),
+                'cluster' : str(m[1]),
                 '_links' : {
                     '_model' : request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
                 }
