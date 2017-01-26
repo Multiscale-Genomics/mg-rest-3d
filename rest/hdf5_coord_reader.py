@@ -180,9 +180,9 @@ class hdf5_coord:
             'end' : np.asscalar(mpds.attrs['end']),
             'chromStart' : [np.asscalar(mpds.attrs['start'])],
             'start' : np.asscalar(mpds.attrs['start']),
-            'chrom' : mpds.attrs['chromosome'],
+            'chrom' : mpds.attrs['chromosome'].decode('utf-8'),
             'dependencies' : self.dependencies,
-            'uuid' : region_id.decode('utf-8'),
+            'uuid' : region_id,
         }
     
     
@@ -346,14 +346,14 @@ class hdf5_coord:
         object_data = self.get_object_data(region_id)
         
         clusters  = self.get_clusters(region_id)
-        centroids = self.centroids[str(region_id)]
+        centroids = self.get_centroids(str(region_id))
         
         return {
             "metadata"   : self.meta_data,
             "object"     : object_data,
             "models"     : models,
             "clusters"   : clusters,
-            "centroids"  : list(centroids[:]),
-            "restrainst" : self.restraints,
+            "centroids"  : centroids,
+            "restraints" : self.restraints,
             "hic_data"   : self.hic_data
         }
