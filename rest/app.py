@@ -105,7 +105,7 @@ class GetResolutions(Resource):
                 {
                     'resolution' : r,
                     '_links' : {
-                        '_chromosomes' : request.url_root + 'api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
+                        '_chromosomes' : request.url_root + 'api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(r)
                 }
             )
         
@@ -183,7 +183,7 @@ class GetChromosomes(Resource):
                 {
                     'chromosome' : c,
                     '_links' : {
-                        '_regions' : request.url_root + 'api/3dcoord/regions?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chr_id=' + str(region_id) + '&start=0&end=1000000000'
+                        '_regions' : request.url_root + 'api/3dcoord/regions?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chr_id=' + str(c) + '&start=0&end=1000000000'
                 }
             )
         
