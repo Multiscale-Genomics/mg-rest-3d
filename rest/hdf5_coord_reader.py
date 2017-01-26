@@ -336,7 +336,6 @@ class hdf5_coord:
             # Using model_ds by pre-cutting then taking slices from that array
             # is much quicker as the majority of the effort is in the initial
             # slice. It is also slightly quicker for getting a single model
-            #model = dset[mpds.attrs['i']:mpds.attrs['j'], model_loc, :]
             model = model_ds[:, model_loc, :]
             
             models.append(
