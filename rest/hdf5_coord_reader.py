@@ -265,7 +265,7 @@ class hdf5_coord:
         if self.resolution == None:
             return {}
         
-        return [region_id for region_id in self.mpgrp.keys() if self.mpgrp[region_id].attrs['start']<end and self.mpgrp[region_id].attrs['end']>start and self.mpgrp[region_id].attrs['chromosome']==chr_id]
+        return [region_id for region_id in self.mpgrp.keys() if self.mpgrp[region_id].attrs['start']<end and self.mpgrp[region_id].attrs['end']>start and self.mpgrp[region_id].attrs['chromosome'].decode('utf-8')==chr_id]
         
         
     def get_models(self, region_id):
