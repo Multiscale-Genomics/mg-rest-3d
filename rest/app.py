@@ -184,7 +184,7 @@ class GetChromosomes(Resource):
                 {
                     'chromosome' : c,
                     '_links' : {
-                        '_regions' : request.url_root + 'api/3dcoord/regions?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chr_id=' + str(c) + '&start=0&end=1000000000'
+                        '_regions' : request.url_root + 'api/3dcoord/regions?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chr=' + str(c) + '&start=0&end=1000000000'
                     }
                 }
             )
@@ -217,7 +217,7 @@ class GetRegions(Resource):
                         'user_id' : ['User ID', 'str', 'REQUIRED'],
                         'file_id' : ['File ID', 'str', 'REQUIRED'],
                         'res'     : ['Resolution', 'int', 'REQUIRED'],
-                        'chr_id'  : ['Chromosome ID', 'str', 'REQUIRED'],
+                        'chr'     : ['Chromosome ID', 'str', 'REQUIRED'],
                         'start'   : ['Chromosome start position', 'int', 'REQUIRED'],
                         'end'     : ['Chromosome end position', 'int', 'REQUIRED'],
                     }
