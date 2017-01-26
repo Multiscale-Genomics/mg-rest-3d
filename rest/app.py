@@ -174,26 +174,6 @@ class GetChromosomes(Resource):
                 }
             )
         
-        return {
-            '_links': {
-                '_self': request.base_url,
-                '_parent': request.url_root + 'api/3dcoord'
-            },
-            'resolution'  : resolution,
-            'chromosomes' : chromosomes
-        }
-        
-        models = {}
-        models['model_list'] = [
-            {
-                'model' : m[0],
-                'cluster' : m[1],
-                '_links' : {
-                    '_self' : request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
-                }
-            } for m in model_list
-        ]
-        
         data['resolution'] = resolution
         data['chromosomes'] = chromosomes
         
