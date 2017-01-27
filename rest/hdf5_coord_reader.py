@@ -57,7 +57,7 @@ class hdf5_coord:
             cnf_loc=os.path.dirname(os.path.abspath(__file__)) + '/mongodb.cnf'
             da = dmp(cnf_loc)
             file_obj = da.get_file_by_id(user_id, file_id)
-            self.f = h5py.File(file_obj["file_path"], "r")
+            self.f = h5py.File(file_obj['file_path'], 'r')
         
         self.resolution = resolution
         
@@ -163,12 +163,12 @@ class hdf5_coord:
         """
         
         if region is not None:
-            chr_id = self.mpgrp[str(region)]['chromosome']
+            chr_id = self.mpgrp[str(region)].attrs['chromosome']
         
         regions = {}
         for r in self.mpgrp:
-            if self.mpgrp[str(r)]['chromosome'] == chr_id
-                regions[r] = self.mpgrp[str(r)]['chromStart']
+            if self.mpgrp[str(r)].attrs['chromosome'] == chr_id:
+                regions[r] = self.mpgrp[str(r)].attrs['start']
         return sorted(regions, key=lambda k: regions[k])
     
     

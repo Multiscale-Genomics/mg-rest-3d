@@ -371,9 +371,9 @@ class GetModels(Resource):
         previous_region = current_region-1
         
         if current_region<(len(region_list)-1):
-            models['_links']['next_region'] = request.url_root + 'api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[next_region]
+            models['_links']['_next_region'] = request.url_root + 'api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[next_region]
         if current_region>0:
-            models['_links']['previous_region'] = request.url_root + 'api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[previous_region]
+            models['_links']['_previous_region'] = request.url_root + 'api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[previous_region]
         
         return models
 
