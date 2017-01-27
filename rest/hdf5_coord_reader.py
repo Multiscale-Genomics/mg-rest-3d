@@ -368,11 +368,12 @@ class hdf5_coord:
         
         if model_ids[0] == 'all':
             model_ids = list(self.mpgrp[str(region_id)][:,0])
+            model_count = len(model_ids)
         
         if mpp > 100:
             mpp=100
         
-        model_count = len(self.mpgrp[str(region_id)][:,0])
+        model_count = len(model_ids)
         page_count = np.ceil(float(model_count)/mpp)
         model_ids.sort()
         model_pages = [model_ids[i:i+mpp] for i in range(0, len(model_ids), mpp)]
