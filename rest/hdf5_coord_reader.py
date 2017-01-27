@@ -375,7 +375,7 @@ class hdf5_coord:
         model_count = len(self.mpgrp[str(region_id)][:,0])
         page_count = np.ceil(float(model_count)/mpp)
         model_ids.sort()
-        model_pages = [x[i:i+mpp]for i in range(0, len(model_ids), mpp)]
+        model_pages = [model_ids[i:i+mpp] for i in range(0, len(model_ids), mpp)]
         
         models = []
         model_ds = dset[mpds.attrs['i']:mpds.attrs['j'], :, :]
@@ -412,7 +412,7 @@ class hdf5_coord:
         
         model_meta = {
             "model_count" : model_count,
-            "page_count" : model_count
+            "page_count" : int(page_count)
         }
         
         return (model_json, model_meta)

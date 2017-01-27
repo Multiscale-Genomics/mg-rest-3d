@@ -433,19 +433,19 @@ class GetModel(Resource):
         if sum([x is not None for x in params]) != len(params):
             return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
         
+        try:
+            resolution = int(resolution)
+            page = int(page)
+            mpp = int(mpp)
+        except Exception as e:
+            # ERROR - one of the parameters is not of integer type
+            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
+        
         if page is None or page<1:
             page = 1
             
         if mpp is None:
             mpp = 10
-        
-        try:
-            resolution = int(resolution)
-            page = int(page)
-            mpp = int(page)
-        except Exception as e:
-            # ERROR - one of the parameters is not of integer type
-            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
         
         h5 = hdf5_coord(user_id, file_id, resolution)
         
@@ -461,14 +461,14 @@ class GetModel(Resource):
         models['query_data'] = {
             'model_count' : model_meta['model_count'],
             'page_count'  : model_meta['page_count'],
-            'page'        : page+1
+            'page'        : page,
             'mpp'         : mpp
         }
         
         if (page) < model_meta['page_count']:
-             models['_links']['_next_page'] = request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0]) + '&mpp=' + str(mpp) + '&page' +str(page+1)
+             models['_links']['_next_page'] = request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page+1)
         if (page) > 1:
-             models['_links']['_previous_page'] = request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0]) + '&mpp=' + str(mpp) + '&page' +str(page-1)
+             models['_links']['_previous_page'] = request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page-1)
         
         return models
 
