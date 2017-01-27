@@ -457,7 +457,7 @@ class GetModel(Resource):
         h5.close()
         
         models['_links'] = {
-            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page+1),
+            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page),
             '_parent': request.url_root + 'api/3dcoord',
         }
         
