@@ -113,7 +113,7 @@ class GetResolutions(Resource):
         data['resolutions'] = resolutions
         
         data['_links'] = {
-            '_self': request.base_url,
+            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id,
             '_parent': request.url_root + 'api/3dcoord'
         }
         
@@ -193,7 +193,7 @@ class GetChromosomes(Resource):
         data['chromosomes'] = chromosomes
         
         data['_links'] = {
-            '_self': request.base_url,
+            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution),
             '_parent': request.url_root + 'api/3dcoord',
             '_resolution' : request.url_root + 'api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id
         }
@@ -282,7 +282,7 @@ class GetRegions(Resource):
         data['regions'] = regions
         
         data['_links'] = {
-            '_self': request.base_url,
+            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chr=' + str(chr_id) + '&start=' + str(start) + '&end=' + str(end),
             '_parent': request.url_root + 'api/3dcoord',
             '_resolution' : request.url_root + 'api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id,
             '_chromosomes' : request.url_root + 'api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
@@ -362,7 +362,7 @@ class GetModels(Resource):
         ]
         
         models['_links'] = {
-            '_self': request.base_url,
+            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id),
             '_parent': request.url_root + 'api/3dcoord',
             '_models_all': request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=all'
         }
@@ -457,7 +457,7 @@ class GetModel(Resource):
         h5.close()
         
         models['_links'] = {
-            '_self': request.base_url,
+            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page+1),
             '_parent': request.url_root + 'api/3dcoord',
         }
         
