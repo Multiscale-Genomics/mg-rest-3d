@@ -347,6 +347,7 @@ class GetModels(Resource):
         
         h5 = hdf5_coord(user_id, file_id, resolution)
         model_list = h5.get_models(region_id)
+        region_list = h5.get_region_order(region=region_id)
         h5.close()
         
         models = {}
@@ -364,6 +365,15 @@ class GetModels(Resource):
             '_self': request.base_url,
             '_parent': request.url_root + 'api/3dcoord'
         }
+        
+        current_region = region_list.index(region_id)
+        next_region = current_region+1
+        previous_region = current_region-1
+        
+        if current_region<(len(region_list)-1):
+            models['_links']['next_region'] = request.url_root + 'api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[next_region]
+        if current_region>0:
+            models['_links']['previous_region'] = request.url_root + 'api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[previous_region]
         
         return models
 
@@ -428,13 +438,12 @@ class GetModel(Resource):
         
         model_ids = model_str.split(',')
         models = h5.get_model(region_id, model_ids)
+        h5.close()
         
         models['_links'] = {
             '_self': request.base_url,
             '_parent': request.url_root + 'api/3dcoord'
         }
-        
-        h5.close()
         
         return models
 

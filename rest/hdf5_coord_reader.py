@@ -143,6 +143,35 @@ class hdf5_coord:
         return self.resolution
     
     
+    def get_region_order(self, chr_id = None, region = None):
+        """
+        List the regions on a given chromosome ID or region ID in the order that
+        they are located on the chromosome
+        
+        Parameters
+        ----------
+        chr_id : str
+            Chromosome ID
+        region : str
+            Region ID
+        
+        Returns
+        -------
+        list
+            region_id : str
+                List of the region IDs
+        """
+        
+        if region is not None:
+            chr_id = self.mpgrp[str(region)]['chromosome']
+        
+        regions = {}
+        for r in self.mpgrp:
+            if self.mpgrp[str(r)]['chromosome'] == chr_id
+                regions[r] = self.mpgrp[str(r)]['chromStart']
+        return sorted(regions, key=lambda k: regions[k])
+    
+    
     def get_object_data(self, region_id):
         """
         Prepare the object header data structure ready for printing
