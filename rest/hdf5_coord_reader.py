@@ -356,6 +356,9 @@ class hdf5_coord:
         if model_ids[0] == 'centroids':
             model_ids = self.get_centroids(region_id)
         
+        if model_ids[0] == 'all':
+            model_ids = list(mpgrp['10'][:,0])
+        
         models = []
         model_ds = dset[mpds.attrs['i']:mpds.attrs['j'], :, :]
         for mid in model_ids:

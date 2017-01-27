@@ -363,7 +363,8 @@ class GetModels(Resource):
         
         models['_links'] = {
             '_self': request.base_url,
-            '_parent': request.url_root + 'api/3dcoord'
+            '_parent': request.url_root + 'api/3dcoord',
+            '_models_all': request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=all'
         }
         
         current_region = region_list.index(region_id)
