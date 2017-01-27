@@ -433,7 +433,7 @@ class GetModel(Resource):
         if sum([x is not None for x in params]) != len(params):
             return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
         
-        if page is None or page<1:
+        if page is None:
             page = 1
             
         if mpp is None:
@@ -446,6 +446,9 @@ class GetModel(Resource):
         except Exception as e:
             # ERROR - one of the parameters is not of integer type
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
+        
+        if page < 1:
+            page = 1
         
         h5 = hdf5_coord(user_id, file_id, resolution)
         
