@@ -316,7 +316,7 @@ class hdf5_coord:
         return model_param_ds[:,:]
         
     
-    def get_model(self, region_id, model_ids = None):
+    def get_model(self, region_id, model_ids = None, page=0, mpp=10):
         """
         Get the coordinates within a defined region on a specific chromosome.
         If the model_id is not returned the the consensus models for that region
@@ -328,23 +328,33 @@ class hdf5_coord:
             Region ID
         model_ids : list
             List of model IDs for the models that are required
+        page : int
+            Page number
+        mpp : int
+            Number of models per page (default: 10; max: 100)
         
         Returns
         -------
-        dict
-            metadata : dict
-                Relevant extra meta data added by TADbit
-            object : dict
-                Key value pair of information about the region
-            models : list
-                List of dictionaries for each model
-            clusters : list
-                List of models for each cluster
-            centroids : list
-                List of all centroid models
-            restraints : list
-                List of retraints for each position
-            hic_data : dict
+        list
+          dict
+              metadata : dict
+                  Relevant extra meta data added by TADbit
+              object : dict
+                  Key value pair of information about the region
+              models : list
+                  List of dictionaries for each model
+              clusters : list
+                  List of models for each cluster
+              centroids : list
+                  List of all centroid models
+              restraints : list
+                  List of retraints for each position
+              hic_data : dict
+          dict
+              model_count : int
+                  Count of the number of models for the defined region ID
+              page_count : int
+                  Number of pages
         """
         
         if self.resolution == None:
@@ -357,11 +367,19 @@ class hdf5_coord:
             model_ids = self.get_centroids(region_id)
         
         if model_ids[0] == 'all':
-            model_ids = list(mpgrp['10'][:,0])
+            model_ids = list(self.mpgrp[str(region_id)][:,0])
+        
+        if mpp > 100:
+            mpp=100
+        
+        model_count = len(self.mpgrp[str(region_id)][:,0])
+        page_count = np.ceil(float(model_count)/mpp)
+        model_ids.sort()
+        model_pages = [x[i:i+mpp]for i in range(0, len(model_ids), mpp)]
         
         models = []
         model_ds = dset[mpds.attrs['i']:mpds.attrs['j'], :, :]
-        for mid in model_ids:
+        for mid in model_pages[page]:
             model_loc = list(mpds[:,0]).index(int(mid))
             
             # length x model_loc x coords
@@ -372,7 +390,7 @@ class hdf5_coord:
             
             models.append(
                 {
-                    "ref" : mid,
+                    "ref" : str(mid),
                     "data" : list([str(x) for coords in model for x in coords])
                 }
             )
@@ -382,12 +400,19 @@ class hdf5_coord:
         clusters  = self.get_clusters(region_id)
         centroids = self.get_centroids(str(region_id))
         
-        return {
+        model_json = {
             "metadata"   : self.meta_data,
             "object"     : object_data,
             "models"     : models,
             "clusters"   : clusters,
             "centroids"  : centroids,
             "restraints" : self.restraints,
-            "hic_data"   : self.hic_data
+            "hic_data"   : self.hic_data,
         }
+        
+        model_meta = {
+            "model_count" : model_count,
+            "page_count" : model_count
+        }
+        
+        return (model_json, model_meta)

@@ -397,6 +397,8 @@ class GetModel(Resource):
                         'file_id' : ['File ID', 'str', 'REQUIRED'],
                         'region'  : ['Regions ID', 'str', 'REQUIRED'],
                         'model'   : ['Model ID', 'str', 'REQUIRED'],
+                        'page'    : ['Page number (default: 0)', 'int', 'OPTIONAL'],
+                        'mpp'     : ['Models per page (default: 10; max: 100)', 'int', 'OPTIONAL'],
                     }
                 }
         message = {
@@ -418,6 +420,8 @@ class GetModel(Resource):
         resolution = request.args.get('res')
         region_id  = request.args.get('region')
         model_str  = request.args.get('model')
+        page       = request.args.get('page')
+        mpp        = request.args.get('mpp')
         
         params = [user_id, file_id, resolution, region_id, model_str]
 
@@ -429,8 +433,16 @@ class GetModel(Resource):
         if sum([x is not None for x in params]) != len(params):
             return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
         
+        if page is None or page<1:
+            page = 1
+            
+        if mpp is None:
+            mpp = 10
+        
         try:
             resolution = int(resolution)
+            page = int(page)
+            mpp = int(page)
         except Exception as e:
             # ERROR - one of the parameters is not of integer type
             return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
@@ -438,13 +450,25 @@ class GetModel(Resource):
         h5 = hdf5_coord(user_id, file_id, resolution)
         
         model_ids = model_str.split(',')
-        models = h5.get_model(region_id, model_ids)
+        models, model_meta = h5.get_model(region_id, model_ids, page-1, mpp)
         h5.close()
         
         models['_links'] = {
             '_self': request.base_url,
-            '_parent': request.url_root + 'api/3dcoord'
+            '_parent': request.url_root + 'api/3dcoord',
         }
+        
+        models['query_data'] = {
+            'model_count' : model_meta['model_count'],
+            'page_count'  : model_meta['page_count'],
+            'page'        : page+1
+            'mpp'         : mpp
+        }
+        
+        if (page) < model_meta['page_count']:
+             models['_links']['_next_page'] = request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0]) + '&mpp=' + str(mpp) + '&page' +str(page+1)
+        if (page) > 1:
+             models['_links']['_previous_page'] = request.url_root + 'api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0]) + '&mpp=' + str(mpp) + '&page' +str(page-1)
         
         return models
 
