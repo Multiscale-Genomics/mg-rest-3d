@@ -20,18 +20,94 @@ from flask_restful import Api, Resource
 from .hdf5_coord_reader import hdf5_coord
 
 
-app = Flask(__name__)
+APP = Flask(__name__)
 #app.config['DEBUG'] = False
 
-api = Api(app)
+def help_usage(error_message, status_code,
+               parameters_required, parameters_provided):
+    """
+    Usage Help
+
+    Description of the basic usage patterns for GET functions for the app,
+    including any parameters that were provided byt he user along with the
+    available parameters that are required/optional.
+
+    Parameters
+    ----------
+    error_message : str | None
+        Error message detailing what has gone wrong. If there are no errors then
+        None should be passed.
+    status_code : int
+        HTTP status code.
+    parameters_required : list
+        List of the text names for each paramter required by the end point. An
+        empty list should be provided if there are no parameters required
+    parameters_provided : dict
+        Dictionary of the parameters and the matching values provided by the
+        user. An empyt dictionary should be passed if there were no parameters
+        provided by the user.
+
+    Returns
+    -------
+    str
+        JSON formated status message to display to the user
+    """
+    parameters = {
+        'user_id' : ['User ID', 'str', 'REQUIRED'],
+        'file_id' : ['File ID', 'str', 'REQUIRED'],
+        'chrom' : ['Chromosome', 'str', 'REQUIRED'],
+        'start' : ['Start', 'int', 'REQUIRED'],
+        'end' : ['End', 'int', 'REQUIRED'],
+        'res' : ['Resolution', 'int', 'REQUIRED'],
+        'region' : ['Region ID', 'int', 'REQUIRED'],
+        'model' : ['Model ID', 'str', 'REQUIRED'],
+        'page' : ['Page number (default: 0)', 'int', 'OPTIONAL'],
+        'mpp' : ['Models per page (default: 10; max: 100)', 'int', 'OPTIONAL'],
+    }
+
+    used_param = {k : parameters[k] for k in parameters_required if k in parameters}
+
+    usage = {
+        '_links' : {
+            '_self' : request.base_url,
+            '_parent' : request.url_root + 'mug/api/dmp'
+        },
+        'parameters' : used_param
+    }
+    message = {
+        'usage' : usage,
+        'status_code' : status_code
+    }
+
+    if parameters_provided:
+        message['provided_parameters'] = parameters_provided
+
+    if error_message != None:
+        message['error'] = error_message
+
+    return message
 
 class GetEndPoints(Resource):
     """
     Class to handle the http requests for returning information about the end
     points
     """
-    
+
     def get(self):
+        """
+        GET list all end points
+
+        List of all of the end points for the current service.
+
+        Example
+        -------
+        .. code-block:: none
+           :linenos:
+
+           curl -X GET http://localhost:5001/mug/api/3dcoord
+
+        """
+
         return {
             '_links': {
                 '_self': request.base_url,
@@ -51,72 +127,74 @@ class GetResolutions(Resource):
     Class to handle the http requests for returning information about the
     resolutions that models have been generated for
     """
-    
-    def usage(self, error_message, status_code, parameters = {}):
-        usage = {
-                    '_links' : {
-                        '_self' : request.base_url,
-                        '_parent': request.url_root + 'mug/api/3dcoord'
-                    },
-                    'parameters' : {
-                        'user_id' : ['User ID', 'str', 'REQUIRED'],
-                        'file_id' : ['File ID', 'str', 'REQUIRED'],
-                    }
-                }
-        message = {
-                      'usage' : usage,
-                      'status_code' : status_code
-                  }
 
-        if len(parameters) > 0:
-            message['provided_parameters'] = parameters
-        
-        if error_message != None:
-            message['error'] = error_message
-
-        return message
-    
     def get(self):
+        """
+        GET List available resolutions from dataset
+
+        Parameters
+        ----------
+        user_id : str
+            User ID
+        file_id : str
+            Identifier of the file to retrieve data from
+
+        Returns
+        -------
+        file : json
+            JSON file listing the available resolutions within the dataset
+
+        Examples
+        --------
+        .. code-block:: none
+           :linenos:
+
+           curl -X GET http://localhost:5001/mug/api/3dcoord/resolutions?user_id=test&file_id=test_file
+
+        """
         user_id = request.args.get('user_id')
         file_id = request.args.get('file_id')
-        
+
+        params_required = ['user_id', 'file_id']
         params = [user_id, file_id]
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return self.usage(None, 200)
-        
+            return help_usage(None, 200, params_required, {})
+
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id}), 400
-        
-        request_path = request.path
-        rp = request_path.split("/")
-        
-        h5 = hdf5_coord(user_id, file_id)
-        resolution_list = h5.get_resolutions()
-        h5.close()
-        
+            return help_usage(
+                'MissingParameters',
+                400,
+                params_required,
+                {'user_id' : user_id, 'file_id' : file_id}
+            )
+
+        hdf5_handle = hdf5_coord(user_id, file_id)
+        resolution_list = hdf5_handle.get_resolutions()
+        hdf5_handle.close()
+
         data = {}
-        
+
         resolutions = []
-        for r in resolution_list:
+        for res in resolution_list:
             resolutions.append(
                 {
-                    'resolution' : r,
+                    'resolution' : res,
                     '_links' : {
-                        '_chromosomes' : request.url_root + 'mug/api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(r)
+                        '_chromosomes' : request.url_root + 'mug/api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(res)
                     }
                 }
             )
-        
+
         data['resolutions'] = resolutions
-        
+
         data['_links'] = {
             '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id,
             '_parent': request.url_root + 'mug/api/3dcoord'
         }
-        
+
         return data
 
 
@@ -125,169 +203,211 @@ class GetChromosomes(Resource):
     Class to handle the http requests for returning information about the
     chromosomes that the models have been generated across
     """
-    
-    def usage(self, error_message, status_code, parameters = {}):
-        usage = {
-                    '_links' : {
-                        '_self' : request.base_url,
-                        '_parent': request.url_root + 'mug/api/3dcoord'
-                    },
-                    'parameters' : {
-                        'user_id' : ['User ID', 'str', 'REQUIRED'],
-                        'file_id' : ['File ID', 'str', 'REQUIRED'],
-                        'res'     : ['Resolution', 'int', 'REQUIRED'],
-                    }
-                }
-        message = {
-                      'usage' : usage,
-                      'status_code' : status_code
-                  }
 
-        if len(parameters) > 0:
-            message['provided_parameters'] = parameters
-        
-        if error_message != None:
-            message['error'] = error_message
-
-        return message
-    
     def get(self):
+        """
+        GET List available chromosomes from dataset
+
+        Parameters
+        ----------
+        user_id : str
+            User ID
+        file_id : str
+            Identifier of the file to retrieve data from
+        res : int
+            Resolution
+
+        Returns
+        -------
+        file : json
+            JSON file listing the available chromosomes within a dataset at a
+            given resolution
+
+        Examples
+        --------
+        .. code-block:: none
+           :linenos:
+
+           curl -X GET http://localhost:5001/mug/api/3dcoord/chromosomes?user_id=test&file_id=test_file
+
+        """
         user_id = request.args.get('user_id')
         file_id = request.args.get('file_id')
         resolution = request.args.get('res')
-        
+
+        params_required = ['user_id', 'file_id', 'res']
         params = [user_id, file_id, resolution]
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return self.usage(None, 200)
-        
+            return help_usage(None, 200, params_required, {})
+
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id}), 400
-        
+            return help_usage(
+                'MissingParameters',
+                400,
+                params_required,
+                {'user_id' : user_id, 'file_id' : file_id}
+            )
+
         try:
             resolution = int(resolution)
-        except Exception as e:
+        except ValueError:
             # ERROR - one of the parameters is not of integer type
-            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution}), 400
-        
-        h5 = hdf5_coord(user_id, file_id, resolution)
-        chromosome_list = h5.get_chromosomes()
-        h5.close()
-        
+            return help_usage(
+                'IncorrectParameterType',
+                400,
+                params_required,
+                {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution}
+            )
+
+        hdf5_handle = hdf5_coord(user_id, file_id, resolution)
+        chromosome_list = hdf5_handle.get_chromosomes()
+        hdf5_handle.close()
+
         data = {}
-        
+
         chromosomes = []
-        for c in chromosome_list:
+        for chrom in chromosome_list:
             chromosomes.append(
                 {
-                    'chromosome' : c,
+                    'chromosome' : chrom,
                     '_links' : {
-                        '_regions' : request.url_root + 'mug/api/3dcoord/regions?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chr=' + str(c) + '&start=0&end=1000000000'
+                        '_regions' : request.url_root + 'mug/api/3dcoord/regions?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chrom=' + str(chrom) + '&start=0&end=1000000000'
                     }
                 }
             )
-        
+
         data['resolution'] = resolution
         data['chromosomes'] = chromosomes
-        
+
         data['_links'] = {
             '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution),
             '_parent': request.url_root + 'mug/api/3dcoord',
             '_resolution' : request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id
         }
-        
+
         return data
 
 
 class GetRegions(Resource):
     """
-    Class to handle the http requests for returning information about the 
+    Class to handle the http requests for returning information about the
     regions that are available in a given region and level of resolution
     """
-    
-    def usage(self, error_message, status_code, parameters = {}):
-        usage = {
-                    '_links' : {
-                        '_self' : request.base_url,
-                        '_parent': request.url_root + 'mug/api/3dcoord'
-                    },
-                    'parameters' : {
-                        'user_id' : ['User ID', 'str', 'REQUIRED'],
-                        'file_id' : ['File ID', 'str', 'REQUIRED'],
-                        'res'     : ['Resolution', 'int', 'REQUIRED'],
-                        'chr'     : ['Chromosome ID', 'str', 'REQUIRED'],
-                        'start'   : ['Chromosome start position', 'int', 'REQUIRED'],
-                        'end'     : ['Chromosome end position', 'int', 'REQUIRED'],
-                    }
-                }
-        message = {
-                      'usage' : usage,
-                      'status_code' : status_code
-                  }
 
-        if len(parameters) > 0:
-            message['provided_parameters'] = parameters
-        
-        if error_message != None:
-            message['error'] = error_message
-
-        return message
-    
     def get(self):
+        """
+        GET List available models from dataset
+
+        Parameters
+        ----------
+        user_id : str
+            User ID
+        file_id : str
+            Identifier of the file to retrieve data from
+        res : int
+            Resolution
+        chrom : str
+            Chromosome identifier (1, 2, 3, chr1, chr2, chr3, I, II, III, etc)
+            for the chromosome of interest
+        start : int
+            Start position for a selected region
+        end : int
+            End position for a selected region
+
+        Returns
+        -------
+        file : json
+            JSON file listing the available models within a dataset at a
+            given resolution and chromosomal region
+
+        Examples
+        --------
+        .. code-block:: none
+           :linenos:
+
+           curl -X GET http://localhost:5001/mug/api/3dcoord/regions?user_id=test&file_id=test_file&res=1000000&chrom=1&start=1&end=1000000
+
+        """
         user_id = request.args.get('user_id')
         file_id = request.args.get('file_id')
         resolution = request.args.get('res')
-        chr_id = request.args.get('chr')
+        chr_id = request.args.get('chrom')
         start = request.args.get('start')
         end = request.args.get('end')
-        
+
+        params_required = ['user_id', 'file_id', 'res', 'chrom', 'start', 'end']
         params = [user_id, file_id, resolution, chr_id, start, end]
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return self.usage(None, 200)
-        
+            return help_usage(None, 200, params_required, {})
+
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'chr_id' : chr_id, 'start' : start, 'end' : end}), 400
-        
+            return help_usage(
+                'MissingParameters',
+                400,
+                params_required,
+                {
+                    'user_id' : user_id,
+                    'file_id' : file_id,
+                    'res' : resolution,
+                    'chrom' : chr_id,
+                    'start' : start,
+                    'end' : end
+                }
+            )
+
         try:
             start = int(start)
             end = int(end)
             resolution = int(resolution)
-        except Exception as e:
+        except ValueError:
             # ERROR - one of the parameters is not of integer type
-            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'chr_id' : chr_id, 'start' : start, 'end' : end}), 400
-        
-        h5 = hdf5_coord(user_id, file_id, resolution)
-        region_list = h5.get_regions(chr_id, start, end)
-        h5.close()
-        
+            return help_usage(
+                'IncorrectParameterType',
+                400,
+                params_required,
+                {
+                    'user_id' : user_id,
+                    'file_id' : file_id,
+                    'res' : resolution,
+                    'chrom' : chr_id,
+                    'start' : start,
+                    'end' : end
+                }
+            )
+
+        hdf5_handle = hdf5_coord(user_id, file_id, resolution)
+        region_list = hdf5_handle.get_regions(chr_id, start, end)
+        hdf5_handle.close()
+
         data = {}
         regions = []
-        for r in region_list:
+        for reg in region_list:
             regions.append(
                 {
-                    'region_id' : r,
+                    'region_id' : reg,
                     '_links' : {
-                        '_models' : request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + r
+                        '_models' : request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + reg
                     }
                 }
             )
-        
+
         data['resolution'] = resolution,
         data['chromosome'] = chr_id,
         data['regions'] = regions
-        
+
         data['_links'] = {
-            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chr=' + str(chr_id) + '&start=' + str(start) + '&end=' + str(end),
+            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chrom=' + str(chr_id) + '&start=' + str(start) + '&end=' + str(end),
             '_parent': request.url_root + 'mug/api/3dcoord',
             '_resolution' : request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id,
             '_chromosomes' : request.url_root + 'mug/api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
         }
-        
+
         return data
 
 
@@ -296,60 +416,83 @@ class GetModels(Resource):
     Class to handle the http requests for returning information about the models
     that are available within a given region.
     """
-    
-    def usage(self, error_message, status_code, parameters = {}):
-        usage = {
-                    '_links' : {
-                        '_self' : request.base_url,
-                        '_parent': request.url_root + 'api/3dcoord'
-                    },
-                    'parameters' : {
-                        'user_id' : ['User ID', 'str', 'REQUIRED'],
-                        'file_id' : ['File ID', 'str', 'REQUIRED'],
-                        'res'     : ['Resolution', 'int', 'REQUIRED'],
-                        'region'  : ['Regions ID', 'str', 'REQUIRED'],
-                    }
-                }
-        message = {
-                      'usage' : usage,
-                      'status_code' : status_code
-                  }
 
-        if len(parameters) > 0:
-            message['provided_parameters'] = parameters
-        
-        if error_message != None:
-            message['error'] = error_message
-
-        return message
-    
     def get(self):
+        """
+        GET List available models from dataset
+
+        Parameters
+        ----------
+        user_id : str
+            User ID
+        file_id : str
+            Identifier of the file to retrieve data from
+        res : int
+            Resolution
+        region : str
+            Region ID
+
+        Returns
+        -------
+        file : json
+            JSON file listing the available models within a dataset at a
+            given resolution and chromosomal region
+
+        Examples
+        --------
+        .. code-block:: none
+           :linenos:
+
+           curl -X GET http://localhost:5001/mug/api/3dcoord/models?user_id=test&file_id=test_file&res=1000000&region=1
+
+        """
         user_id = request.args.get('user_id')
         file_id = request.args.get('file_id')
         resolution = request.args.get('res')
         region_id = request.args.get('region')
-        
+
+        params_required = ['user_id', 'file_id', 'res', 'region']
         params = [user_id, file_id, resolution, region_id]
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return self.usage(None, 200)
-        
+            return help_usage(None, 200, params_required, {})
+
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id}), 400
-        
+            return help_usage(
+                'MissingParameters',
+                400,
+                params_required,
+                {
+                    'user_id' : user_id,
+                    'file_id' : file_id,
+                    'res' : resolution,
+                    'region' : region_id
+                }
+            )
+
         try:
             resolution = int(resolution)
-        except Exception as e:
+        except ValueError:
             # ERROR - one of the parameters is not of integer type
-            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id}), 400
-        
-        h5 = hdf5_coord(user_id, file_id, resolution)
-        model_list = h5.get_models(region_id)
-        region_list = h5.get_region_order(region=region_id)
-        h5.close()
-        
+            return help_usage(
+                'IncorrectParameterType',
+                400,
+                params_required,
+                {
+                    'user_id' : user_id,
+                    'file_id' : file_id,
+                    'res' : resolution,
+                    'region' : region_id
+                }
+            )
+
+        hdf5_handle = hdf5_coord(user_id, file_id, resolution)
+        model_list = hdf5_handle.get_models(region_id)
+        region_list = hdf5_handle.get_region_order(region=region_id)
+        hdf5_handle.close()
+
         models = {}
         models['model_list'] = [
             {
@@ -360,22 +503,22 @@ class GetModels(Resource):
                 }
             } for m in model_list
         ]
-        
+
         models['_links'] = {
             '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id),
             '_parent': request.url_root + 'mug/api/3dcoord',
             '_models_all': request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=all'
         }
-        
+
         current_region = region_list.index(region_id)
         next_region = current_region+1
         previous_region = current_region-1
-        
-        if current_region<(len(region_list)-1):
+
+        if current_region < (len(region_list)-1):
             models['_links']['_next_region'] = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[next_region]
-        if current_region>0:
+        if current_region > 0:
             models['_links']['_previous_region'] = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[previous_region]
-        
+
         return models
 
 
@@ -385,103 +528,142 @@ class GetModel(Resource):
     region. The list of models is a comma separated list that can return
     multiple models from the same region
     """
-    
-    def usage(self, error_message, status_code, parameters = {}):
-        usage = {
-                    '_links' : {
-                        '_self' : request.base_url,
-                        '_parent': request.url_root + 'api/3dcoord'
-                    },
-                    'parameters' : {
-                        'user_id' : ['User ID', 'str', 'REQUIRED'],
-                        'file_id' : ['File ID', 'str', 'REQUIRED'],
-                        'region'  : ['Regions ID', 'str', 'REQUIRED'],
-                        'model'   : ['Model ID', 'str', 'REQUIRED'],
-                        'page'    : ['Page number (default: 0)', 'int', 'OPTIONAL'],
-                        'mpp'     : ['Models per page (default: 10; max: 100)', 'int', 'OPTIONAL'],
-                    }
-                }
-        message = {
-                      'usage' : usage,
-                      'status_code' : status_code
-                  }
 
-        if len(parameters) > 0:
-            message['provided_parameters'] = parameters
-        
-        if error_message != None:
-            message['error'] = error_message
-
-        return message
-    
     def get(self):
-        user_id    = request.args.get('user_id')
-        file_id    = request.args.get('file_id')
+        """
+        GET List available model from dataset
+
+        Parameters
+        ----------
+        user_id : str
+            User ID
+        file_id : str
+            Identifier of the file to retrieve data from
+        res : int
+            Resolution
+        region : str
+            Region ID
+        model : str
+            model ID
+
+        Returns
+        -------
+        file : json
+            JSON file listing the available models within a dataset at a
+            given resolution and chromosomal region
+
+        Examples
+        --------
+        .. code-block:: none
+           :linenos:
+
+           curl -X GET http://localhost:5001/mug/api/3dcoord/model?user_id=test&file_id=test_file&region=1&model=model1
+
+        """
+        user_id = request.args.get('user_id')
+        file_id = request.args.get('file_id')
         resolution = request.args.get('res')
-        region_id  = request.args.get('region')
-        model_str  = request.args.get('model')
-        page       = request.args.get('page')
-        mpp        = request.args.get('mpp')
-        
+        region_id = request.args.get('region')
+        model_str = request.args.get('model')
+        page = request.args.get('page')
+        mpp = request.args.get('mpp')
+
+        params_required = ['user_id', 'file_id', 'res', 'region', 'model']
         params = [user_id, file_id, resolution, region_id, model_str]
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return self.usage(None, 200)
-        
+            return help_usage(None, 200, params_required, {})
+
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return self.usage('MissingParameters', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
-        
+            return help_usage(
+                'MissingParameters',
+                400,
+                params_required,
+                {
+                    'user_id' : user_id,
+                    'file_id' : file_id,
+                    'res' : resolution,
+                    'region' : region_id,
+                    'model' : model_str
+                }
+            )
+
         if page is None:
             page = 1
-            
+
         if mpp is None:
             mpp = 10
-        
+
         try:
             resolution = int(resolution)
             page = int(page)
             mpp = int(mpp)
-        except Exception as e:
+        except ValueError:
             # ERROR - one of the parameters is not of integer type
-            return self.usage('IncorrectParameterType', 400, {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution, 'region' : region_id, 'model' : model_str}), 400
-        
+            return help_usage(
+                'IncorrectParameterType',
+                400,
+                params_required,
+                {
+                    'user_id' : user_id,
+                    'file_id' : file_id,
+                    'res' : resolution,
+                    'region' : region_id,
+                    'model' : model_str
+                }
+            )
+
         if page < 1:
             page = 1
-        
-        h5 = hdf5_coord(user_id, file_id, resolution)
-        
+
+        hdf5_handle = hdf5_coord(user_id, file_id, resolution)
+
         model_ids = model_str.split(',')
-        models, model_meta = h5.get_model(region_id, model_ids, page-1, mpp)
-        h5.close()
-        
+        models, model_meta = hdf5_handle.get_model(region_id, model_ids, page-1, mpp)
+        hdf5_handle.close()
+
         models['_links'] = {
             '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page),
             '_parent': request.url_root + 'mug/api/3dcoord',
         }
-        
+
         models['query_data'] = {
             'model_count' : model_meta['model_count'],
             'page_count'  : model_meta['page_count'],
             'page'        : page,
             'mpp'         : mpp
         }
-        
+
         if (page) < model_meta['page_count']:
-             models['_links']['_next_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page+1)
+            models['_links']['_next_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page+1)
         if (page) > 1:
-             models['_links']['_previous_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page-1)
-        
+            models['_links']['_previous_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page-1)
+
         return models
 
 
-class ping(Resource):
+class Ping(Resource):
     """
     Class to handle the http requests to ping a service
     """
-    
+
     def get(self):
+        """
+        GET Status
+
+        List the current status of the service along with the relevant
+        information about the version.
+
+        Example
+        -------
+        .. code-block:: none
+           :linenos:
+
+           curl -X GET http://localhost:5001/mug/api/3dcoord/ping
+
+        """
         from . import release
         res = {
             "status":  "ready",
@@ -497,56 +679,35 @@ class ping(Resource):
         }
         return res
 
+################################################################################
+
+API = Api(APP)
+
 """
 Define the URIs and their matching methods
 """
 #   List the available end points for this service
-api.add_resource(GetEndPoints, "/mug/api/3dcoord", endpoint='3dcoord_root')
+API.add_resource(GetEndPoints, "/mug/api/3dcoord", endpoint='3dcoord_root')
 
 #   Show the available resolutions
-#   Parameters:
-#    - file_id - (string)
-#    - user_id - (string)
-api.add_resource(GetResolutions, "/mug/api/3dcoord/resolutions", endpoint='resolutions')
+API.add_resource(GetResolutions, "/mug/api/3dcoord/resolutions", endpoint='resolutions')
 
 #   Show the available chromosomes for a given resolution
-#   Parameters:
-#    - file_id - (string)
-#    - user_id - (string)
-#    - res     - resolution (int)
-api.add_resource(GetChromosomes, "/mug/api/3dcoord/chromosomes", endpoint='chromosomes')
+API.add_resource(GetChromosomes, "/mug/api/3dcoord/chromosomes", endpoint='chromosomes')
 
 #   Show the available regions for a given chromosome, start, end and resolution
-#   Parameters:
-#    - file_id - (string)
-#    - user_id - (string)
-#    - chr     - chromosome (string)
-#    - res     - resolution (int)
-#    - start   - chromosome start(int)
-#    - end     - chromosome end (int)
-api.add_resource(GetRegions, "/mug/api/3dcoord/regions", endpoint='regions')
+API.add_resource(GetRegions, "/mug/api/3dcoord/regions", endpoint='regions')
 
 #   Show the available models for a given region_id
-#   Parameters:
-#    - file_id   - (string)
-#    - user_id   - (string)
-#    - region_id - region_id (int)
-api.add_resource(GetModels, "/mug/api/3dcoord/models", endpoint='models')
+API.add_resource(GetModels, "/mug/api/3dcoord/models", endpoint='models')
 
 #   Show the 3D coordinates of a model for a given region_id
-#   Parameters:
-#    - file_id   - (string)
-#    - user_id   - (string)
-#    - region_id - region_id (int)
-#    - model_id  - model_id (string)
-api.add_resource(GetModel, "/mug/api/3dcoord/model", endpoint='model')
+API.add_resource(GetModel, "/mug/api/3dcoord/model", endpoint='model')
 
 #   Service ping
-api.add_resource(ping, "/mug/api/3dcoord/ping", endpoint='adjacency-ping')
+API.add_resource(Ping, "/mug/api/3dcoord/ping", endpoint='adjacency-ping')
 
 
-"""
-Initialise the server
-"""
+# Initialise the server
 if __name__ == "__main__":
-    app.run()
+    APP.run()
