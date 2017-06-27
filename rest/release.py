@@ -16,7 +16,6 @@ limitations under the License.
 
 __rest_name__ = "Model 3D coordinates for genomic regions"
 __description__ = "Access to HDF5 files generated as part of the TABbit pipeline"
-__version__   = "v0.0"
-__author__    = "Mark McDowall"
-__license__   = "Apache 2.0"
-
+__version__ = "v0.0"
+__author__ = "Mark McDowall"
+__license__ = "Apache 2.0"
