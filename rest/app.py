@@ -17,7 +17,7 @@ limitations under the License.
 from flask import Flask, make_response, request
 from flask_restful import Api, Resource
 
-from .hdf5_coord_reader import hdf5_coord
+from reader.hdf5_coord import coord
 
 
 APP = Flask(__name__)
@@ -171,7 +171,7 @@ class GetResolutions(Resource):
                 {'user_id' : user_id, 'file_id' : file_id}
             )
 
-        hdf5_handle = hdf5_coord(user_id, file_id)
+        hdf5_handle = coord(user_id, file_id)
         resolution_list = hdf5_handle.get_resolutions()
         hdf5_handle.close()
 
@@ -262,7 +262,7 @@ class GetChromosomes(Resource):
                 {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution}
             )
 
-        hdf5_handle = hdf5_coord(user_id, file_id, resolution)
+        hdf5_handle = coord(user_id, file_id, resolution)
         chromosome_list = hdf5_handle.get_chromosomes()
         hdf5_handle.close()
 
@@ -381,7 +381,7 @@ class GetRegions(Resource):
                 }
             )
 
-        hdf5_handle = hdf5_coord(user_id, file_id, resolution)
+        hdf5_handle = coord(user_id, file_id, resolution)
         region_list = hdf5_handle.get_regions(chr_id, start, end)
         hdf5_handle.close()
 
@@ -488,7 +488,7 @@ class GetModels(Resource):
                 }
             )
 
-        hdf5_handle = hdf5_coord(user_id, file_id, resolution)
+        hdf5_handle = coord(user_id, file_id, resolution)
         model_list = hdf5_handle.get_models(region_id)
         region_list = hdf5_handle.get_region_order(region=region_id)
         hdf5_handle.close()
@@ -618,7 +618,7 @@ class GetModel(Resource):
         if page < 1:
             page = 1
 
-        hdf5_handle = hdf5_coord(user_id, file_id, resolution)
+        hdf5_handle = coord(user_id, file_id, resolution)
 
         model_ids = model_str.split(',')
         models, model_meta = hdf5_handle.get_model(region_id, model_ids, page-1, mpp)
