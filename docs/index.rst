@@ -10,6 +10,10 @@ Welcome to MuG - 3D model RESTful API's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   install
+   app
+   adr
+   license
 
 
 Indices and tables
