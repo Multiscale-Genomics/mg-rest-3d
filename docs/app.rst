@@ -8,13 +8,19 @@ mg-rest-adjacency server
    .. autoclass:: rest.app.GetEndPoints
       :members:
    
-   .. autoclass:: rest.app.GetDetails
+   .. autoclass:: rest.app.GetResolutions
       :members:
 
-   .. autoclass:: rest.app.GetInteractions
+   .. autoclass:: rest.app.GetChromosomes
       :members:
 
-   .. autoclass:: rest.app.GetValue
+   .. autoclass:: rest.app.GetRegions
+      :members:
+
+   .. autoclass:: rest.app.GetModels
+      :members:
+
+   .. autoclass:: rest.app.GetModel
       :members:
 
    .. autoclass:: rest.app.Ping
