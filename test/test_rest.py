@@ -48,7 +48,7 @@ def test_endpoints(client):
     """
     rest_value = client.get('/mug/api/3dcoord')
     details = json.loads(rest_value.data)
-    #print(details)
+    print(details)
     assert '_links' in details
 
 def test_ping(client):
@@ -57,5 +57,156 @@ def test_ping(client):
     """
     rest_value = client.get('/mug/api/3dcoord/ping')
     details = json.loads(rest_value.data)
-    #print(details)
+    print(details)
     assert 'status' in details
+
+def test_resolutions(client):
+    """
+    Test that the endpoint returns the usage for resolution
+    """
+    rest_value = client.get('/mug/api/3dcoord/resolutions')
+    details = json.loads(rest_value.data)
+    print(details)
+    assert 'usage' in details
+
+def test_resolutions_00(client):
+    """
+    Test retrieving of available resolutions with test credentials
+    """
+    rest_value = client.get('/mug/api/3dcoord/resolutions?user_id=test&file_id=test')
+    details = json.loads(rest_value.data)
+    print(details)
+    assert 'resolutions' in details
+
+def test_chromosomes(client):
+    """
+    Test that the endpoint returns the usage for chromosomes
+    """
+    rest_value = client.get('/mug/api/3dcoord/chromosomes')
+    details = json.loads(rest_value.data)
+    print(details)
+    assert 'usage' in details
+
+def test_chromosomes_00(client):
+    """
+    Test retrieving of available chromosomes with test credentials
+    """
+    rest_value = client.get('/mug/api/3dcoord/resolutions?user_id=test&file_id=test')
+    resolutions = json.loads(rest_value.data)
+    resolution = str(resolutions['resolutions'][0]['resolution'])
+
+    rest_value = client.get('/mug/api/3dcoord/chromosomes?user_id=test&file_id=test&res=' + resolution)
+    details = json.loads(rest_value.data)
+    print(details)
+    assert 'resolution' in details
+    assert details['resolution'] == int(resolution)
+    assert 'chromosomes' in details
+
+def test_regions(client):
+    """
+    Test that the endpoint returns the usage for regions
+    """
+    rest_value = client.get('/mug/api/3dcoord/regions')
+    details = json.loads(rest_value.data)
+    print(details)
+    assert 'usage' in details
+
+def test_regions_00(client):
+    """
+    Test retrieving of available regions with test credentials
+    """
+    rest_value = client.get('/mug/api/3dcoord/resolutions?user_id=test&file_id=test')
+    resolutions = json.loads(rest_value.data)
+    resolution = str(resolutions['resolutions'][0]['resolution'])
+
+    rest_value = client.get('/mug/api/3dcoord/chromosomes?user_id=test&file_id=test&res=' + resolution)
+    chr_details = json.loads(rest_value.data)
+
+    chromosome = chr_details['chromosomes'][0]['chromosome']
+    start = 1
+    end = 30000000
+
+    rest_value = client.get('/mug/api/3dcoord/regions?user_id=test&file_id=test&res=' + resolution + '&start=' + str(start) + '&end=' + str(end) + '&chrom=' + str(chromosome))
+    details = json.loads(rest_value.data)
+
+    print(details)
+    assert 'regions' in details
+    assert 'chromosome' in details
+    assert details['chromosome'][0] == chromosome
+
+def test_models(client):
+    """
+    Test that the endpoint returns the usage for models
+    """
+    rest_value = client.get('/mug/api/3dcoord/models')
+    details = json.loads(rest_value.data)
+    print(details)
+    assert 'usage' in details
+
+def test_models_00(client):
+    """
+    Test retrieving of available models with test credentials
+    """
+    rest_value = client.get('/mug/api/3dcoord/resolutions?user_id=test&file_id=test')
+    resolutions = json.loads(rest_value.data)
+    resolution = str(resolutions['resolutions'][0]['resolution'])
+
+    rest_value = client.get('/mug/api/3dcoord/chromosomes?user_id=test&file_id=test&res=' + resolution)
+    chr_details = json.loads(rest_value.data)
+
+    chromosome = chr_details['chromosomes'][0]['chromosome']
+    start = 1
+    end = 30000000
+
+    rest_value = client.get('/mug/api/3dcoord/regions?user_id=test&file_id=test&res=' + resolution + '&start=' + str(start) + '&end=' + str(end) + '&chrom=' + str(chromosome))
+    regions = json.loads(rest_value.data)
+
+    region_id = regions['regions'][0]['region_id']
+
+    rest_value = client.get('/mug/api/3dcoord/models?user_id=test&file_id=test&res=' + resolution + '&region=' + region_id)
+    details = json.loads(rest_value.data)
+
+    print(details.keys())
+
+    assert 'model_list' in details
+
+def test_model(client):
+    """
+    Test that the endpoint returns the usage for model
+    """
+    rest_value = client.get('/mug/api/3dcoord/model')
+    details = json.loads(rest_value.data)
+    print(details)
+    assert 'usage' in details
+
+def test_model_00(client):
+    """
+    Test retrieving of an available an with test credentials
+    """
+    rest_value = client.get('/mug/api/3dcoord/resolutions?user_id=test&file_id=test')
+    resolutions = json.loads(rest_value.data)
+    resolution = str(resolutions['resolutions'][0]['resolution'])
+
+    rest_value = client.get('/mug/api/3dcoord/chromosomes?user_id=test&file_id=test&res=' + resolution)
+    chr_details = json.loads(rest_value.data)
+
+    chromosome = chr_details['chromosomes'][0]['chromosome']
+    start = 1
+    end = 30000000
+
+    rest_value = client.get('/mug/api/3dcoord/regions?user_id=test&file_id=test&res=' + resolution + '&start=' + str(start) + '&end=' + str(end) + '&chrom=' + str(chromosome))
+    regions = json.loads(rest_value.data)
+
+    region_id = regions['regions'][0]['region_id']
+
+    rest_value = client.get('/mug/api/3dcoord/models?user_id=test&file_id=test&res=' + resolution + '&region=' + region_id)
+    models = json.loads(rest_value.data)
+
+    model_id = models['model_list'][0]['model']
+
+    rest_value = client.get('/mug/api/3dcoord/model?user_id=test&file_id=test&res=' + resolution + '&region=' + region_id + '&model=' + model_id)
+    details = json.loads(rest_value.data)
+
+    print(details.keys())
+
+    assert 'metadata' in details
