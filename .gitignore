@@ -3,3 +3,6 @@
 .python-version
 *.cnf
 *.hdf5
+.eggs
+*.egg-info
+.cache
