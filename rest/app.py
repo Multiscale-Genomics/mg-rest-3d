@@ -23,70 +23,69 @@ from reader.hdf5_coord import coord
 APP = Flask(__name__)
 #app.config['DEBUG'] = False
 
-class get_help(object):
-    def help_usage(error_message, status_code,
-                   parameters_required, parameters_provided):
-        """
-        Usage Help
+def help_usage(error_message, status_code,
+               parameters_required, parameters_provided):
+    """
+    Usage Help
 
-        Description of the basic usage patterns for GET functions for the app,
-        including any parameters that were provided byt he user along with the
-        available parameters that are required/optional.
+    Description of the basic usage patterns for GET functions for the app,
+    including any parameters that were provided byt he user along with the
+    available parameters that are required/optional.
 
-        Parameters
-        ----------
-        error_message : str | None
-            Error message detailing what has gone wrong. If there are no errors then
-            None should be passed.
-        status_code : int
-            HTTP status code.
-        parameters_required : list
-            List of the text names for each paramter required by the end point. An
-            empty list should be provided if there are no parameters required
-        parameters_provided : dict
-            Dictionary of the parameters and the matching values provided by the
-            user. An empyt dictionary should be passed if there were no parameters
-            provided by the user.
+    Parameters
+    ----------
+    error_message : str | None
+        Error message detailing what has gone wrong. If there are no errors then
+        None should be passed.
+    status_code : int
+        HTTP status code.
+    parameters_required : list
+        List of the text names for each paramter required by the end point. An
+        empty list should be provided if there are no parameters required
+    parameters_provided : dict
+        Dictionary of the parameters and the matching values provided by the
+        user. An empyt dictionary should be passed if there were no parameters
+        provided by the user.
 
-        Returns
-        -------
-        str
-            JSON formated status message to display to the user
-        """
-        parameters = {
-            'user_id' : ['User ID', 'str', 'REQUIRED'],
-            'file_id' : ['File ID', 'str', 'REQUIRED'],
-            'chrom' : ['Chromosome', 'str', 'REQUIRED'],
-            'start' : ['Start', 'int', 'REQUIRED'],
-            'end' : ['End', 'int', 'REQUIRED'],
-            'res' : ['Resolution', 'int', 'REQUIRED'],
-            'region' : ['Region ID', 'int', 'REQUIRED'],
-            'model' : ['Model ID', 'str', 'REQUIRED'],
-            'page' : ['Page number (default: 0)', 'int', 'OPTIONAL'],
-            'mpp' : ['Models per page (default: 10; max: 100)', 'int', 'OPTIONAL'],
-        }
+    Returns
+    -------
+    str
+        JSON formated status message to display to the user
+    """
+    parameters = {
+        'user_id' : ['User ID', 'str', 'REQUIRED'],
+        'file_id' : ['File ID', 'str', 'REQUIRED'],
+        'chrom' : ['Chromosome', 'str', 'REQUIRED'],
+        'start' : ['Start', 'int', 'REQUIRED'],
+        'end' : ['End', 'int', 'REQUIRED'],
+        'res' : ['Resolution', 'int', 'REQUIRED'],
+        'region' : ['Region ID', 'int', 'REQUIRED'],
+        'model' : ['Model ID', 'str', 'REQUIRED'],
+        'page' : ['Page number (default: 0)', 'int', 'OPTIONAL'],
+        'mpp' : ['Models per page (default: 10; max: 100)', 'int', 'OPTIONAL'],
+    }
 
-        used_param = {k : parameters[k] for k in parameters_required if k in parameters}
+    used_param = {k : parameters[k] for k in parameters_required if k in parameters}
 
-        usage = {
-            '_links' : {
-                '_self' : request.base_url,
-                '_parent' : request.url_root + 'mug/api/dmp'
-            },
-            'parameters' : used_param
-        }
-        message = {
-            'usage' : usage,
-            'status_code' : status_code
-        }
+    usage = {
+        '_links' : {
+            '_self' : request.base_url,
+            '_parent' : request.url_root + 'mug/api/dmp'
+        },
+        'parameters' : used_param
+    }
+    message = {
+        'usage' : usage,
+        'status_code' : status_code
+    }
 
-        if parameters_provided:
-            message['provided_parameters'] = parameters_provided
+    if parameters_provided:
+        message['provided_parameters'] = parameters_provided
 
-        if error_message != None:
-            message['error'] = error_message
+    if error_message != None:
+        message['error'] = error_message
 
-        return message
+    return message
 
 class GetEndPoints(Resource):
     """
@@ -161,11 +160,11 @@ class GetResolutions(Resource):
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return get_help.help_usage(None, 200, params_required, {})
+            return help_usage(None, 200, params_required, {})
 
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return get_help.help_usage(
+            return help_usage(
                 'MissingParameters',
                 400,
                 params_required,
@@ -241,11 +240,11 @@ class GetChromosomes(Resource):
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return get_help.help_usage(None, 200, params_required, {})
+            return help_usage(None, 200, params_required, {})
 
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return get_help.help_usage(
+            return help_usage(
                 'MissingParameters',
                 400,
                 params_required,
@@ -256,7 +255,7 @@ class GetChromosomes(Resource):
             resolution = int(resolution)
         except ValueError:
             # ERROR - one of the parameters is not of integer type
-            return get_help.help_usage(
+            return help_usage(
                 'IncorrectParameterType',
                 400,
                 params_required,
@@ -344,11 +343,11 @@ class GetRegions(Resource):
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return get_help.help_usage(None, 200, params_required, {})
+            return help_usage(None, 200, params_required, {})
 
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return get_help.help_usage(
+            return help_usage(
                 'MissingParameters',
                 400,
                 params_required,
@@ -368,7 +367,7 @@ class GetRegions(Resource):
             resolution = int(resolution)
         except ValueError:
             # ERROR - one of the parameters is not of integer type
-            return get_help.help_usage(
+            return help_usage(
                 'IncorrectParameterType',
                 400,
                 params_required,
@@ -457,11 +456,11 @@ class GetModels(Resource):
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return get_help.help_usage(None, 200, params_required, {})
+            return help_usage(None, 200, params_required, {})
 
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return get_help.help_usage(
+            return help_usage(
                 'MissingParameters',
                 400,
                 params_required,
@@ -477,7 +476,7 @@ class GetModels(Resource):
             resolution = int(resolution)
         except ValueError:
             # ERROR - one of the parameters is not of integer type
-            return get_help.help_usage(
+            return help_usage(
                 'IncorrectParameterType',
                 400,
                 params_required,
@@ -574,11 +573,11 @@ class GetModel(Resource):
 
         # Display the parameters available
         if sum([x is None for x in params]) == len(params):
-            return get_help.help_usage(None, 200, params_required, {})
+            return help_usage(None, 200, params_required, {})
 
         # ERROR - one of the required parameters is NoneType
         if sum([x is not None for x in params]) != len(params):
-            return get_help.help_usage(
+            return help_usage(
                 'MissingParameters',
                 400,
                 params_required,
@@ -603,7 +602,7 @@ class GetModel(Resource):
             mpp = int(mpp)
         except ValueError:
             # ERROR - one of the parameters is not of integer type
-            return get_help.help_usage(
+            return help_usage(
                 'IncorrectParameterType',
                 400,
                 params_required,
