@@ -1,9 +1,6 @@
 mg-rest-3d server
 =================
 
-Methods
--------
-
 .. automodule:: rest.app
 
    Methods
