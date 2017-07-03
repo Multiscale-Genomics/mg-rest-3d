@@ -1,5 +1,5 @@
-mg-rest-adjacency server
-========================
+mg-rest-3d server
+=================
 
 .. automodule:: rest.app
    
