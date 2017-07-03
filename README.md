@@ -1,4 +1,7 @@
 # mg-rest-3d
+
+[![Documentation Status](https://readthedocs.org/projects/mg-rest-3d/badge/?version=latest)](http://mg-rest-3d.readthedocs.io/en/latest/?badge=latest)
+
 RESTful API for TADbit generated 3D coordinates
 
 # Requirements
@@ -22,6 +25,7 @@ git clone https://github.com/Multiscale-Genomics/mg-rest-3d.git
 To get this to be picked up by pip if part of a webserver then:
 ```
 pip install --editable .
+pip install -r requirements.txt
 ```
 This should install the required packages listed in the `setup.py` script.
 
