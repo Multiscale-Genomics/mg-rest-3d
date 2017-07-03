@@ -1,3 +1,5 @@
+numpy
+h5py
 flask
 flask_restful
 flask_apscheduler
