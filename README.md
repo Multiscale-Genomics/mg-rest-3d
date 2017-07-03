@@ -1,6 +1,6 @@
 # mg-rest-3d
 
-[![Documentation Status](https://readthedocs.org/projects/mg-rest-3d/badge/?version=latest)](http://mg-rest-3d.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/mg-rest-3d/badge/?version=latest)](http://mg-rest-3d.readthedocs.io/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/Multiscale-Genomics/mg-rest-3d.svg?branch=master)](https://travis-ci.org/Multiscale-Genomics/mg-rest-3d)
 
 RESTful API for TADbit generated 3D coordinates
 
