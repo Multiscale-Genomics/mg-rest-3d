@@ -14,7 +14,7 @@
    limitations under the License.
 """
 
-from flask import Flask, make_response, request
+from flask import Flask, request
 from flask_restful import Api, Resource
 
 from reader.hdf5_coord import coord
@@ -93,7 +93,8 @@ class GetEndPoints(Resource):
     points
     """
 
-    def get(self):
+    @staticmethod
+    def get():
         """
         GET list all end points
 
@@ -128,7 +129,8 @@ class GetResolutions(Resource):
     resolutions that models have been generated for
     """
 
-    def get(self):
+    @staticmethod
+    def get():
         """
         GET List available resolutions from dataset
 
@@ -179,11 +181,15 @@ class GetResolutions(Resource):
 
         resolutions = []
         for res in resolution_list:
+            chr_url = request.url_root
+            chr_url += 'mug/api/3dcoord/chromosomes?user_id=' + user_id
+            chr_url += '&file_id=' + file_id
+            chr_url += '&res=' + str(res)
             resolutions.append(
                 {
                     'resolution' : res,
                     '_links' : {
-                        '_chromosomes' : request.url_root + 'mug/api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(res)
+                        '_chromosomes' : chr_url
                     }
                 }
             )
@@ -204,7 +210,8 @@ class GetChromosomes(Resource):
     chromosomes that the models have been generated across
     """
 
-    def get(self):
+    @staticmethod
+    def get():
         """
         GET List available chromosomes from dataset
 
@@ -270,11 +277,17 @@ class GetChromosomes(Resource):
 
         chromosomes = []
         for chrom in chromosome_list:
+            region_url = request.url_root
+            region_url += 'mug/api/3dcoord/regions?user_id=' + user_id
+            region_url += '&file_id=' + file_id
+            region_url += '&res=' + str(resolution)
+            region_url += '&chrom=' + str(chrom)
+            region_url += '&start=0&end=1000000000'
             chromosomes.append(
                 {
                     'chromosome' : chrom,
                     '_links' : {
-                        '_regions' : request.url_root + 'mug/api/3dcoord/regions?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chrom=' + str(chrom) + '&start=0&end=1000000000'
+                        '_regions' : region_url
                     }
                 }
             )
@@ -282,10 +295,12 @@ class GetChromosomes(Resource):
         data['resolution'] = resolution
         data['chromosomes'] = chromosomes
 
+        self_url = request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution),
+        res_url = request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id
         data['_links'] = {
-            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution),
+            '_self': self_url,
             '_parent': request.url_root + 'mug/api/3dcoord',
-            '_resolution' : request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id
+            '_resolution' : res_url
         }
 
         return data
@@ -297,7 +312,8 @@ class GetRegions(Resource):
     regions that are available in a given region and level of resolution
     """
 
-    def get(self):
+    @staticmethod
+    def get():
         """
         GET List available models from dataset
 
@@ -388,11 +404,15 @@ class GetRegions(Resource):
         data = {}
         regions = []
         for reg in region_list:
+            model_url = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id
+            model_url += '&file_id=' + file_id
+            model_url += '&res=' + str(resolution)
+            model_url += '&region=' + reg
             regions.append(
                 {
                     'region_id' : reg,
                     '_links' : {
-                        '_models' : request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + reg
+                        '_models' : model_url
                     }
                 }
             )
@@ -417,7 +437,8 @@ class GetModels(Resource):
     that are available within a given region.
     """
 
-    def get(self):
+    @staticmethod
+    def get():
         """
         GET List available models from dataset
 
@@ -529,7 +550,8 @@ class GetModel(Resource):
     multiple models from the same region
     """
 
-    def get(self):
+    @staticmethod
+    def get():
         """
         GET List available model from dataset
 
@@ -649,7 +671,8 @@ class Ping(Resource):
     Class to handle the http requests to ping a service
     """
 
-    def get(self):
+    @staticmethod
+    def get():
         """
         GET Status
 
