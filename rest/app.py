@@ -1,5 +1,6 @@
 """
-.. Copyright 2017 EMBL-European Bioinformatics Institute
+.. See the NOTICE file distributed with this work for additional information
+   regarding copyright ownership.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -53,30 +54,30 @@ def help_usage(error_message, status_code,
         JSON formated status message to display to the user
     """
     parameters = {
-        'user_id' : ['User ID', 'str', 'REQUIRED'],
-        'file_id' : ['File ID', 'str', 'REQUIRED'],
-        'chrom' : ['Chromosome', 'str', 'REQUIRED'],
-        'start' : ['Start', 'int', 'REQUIRED'],
-        'end' : ['End', 'int', 'REQUIRED'],
-        'res' : ['Resolution', 'int', 'REQUIRED'],
-        'region' : ['Region ID', 'int', 'REQUIRED'],
-        'model' : ['Model ID', 'str', 'REQUIRED'],
-        'page' : ['Page number (default: 0)', 'int', 'OPTIONAL'],
-        'mpp' : ['Models per page (default: 10; max: 100)', 'int', 'OPTIONAL'],
+        'user_id': ['User ID', 'str', 'REQUIRED'],
+        'file_id': ['File ID', 'str', 'REQUIRED'],
+        'chrom': ['Chromosome', 'str', 'REQUIRED'],
+        'start': ['Start', 'int', 'REQUIRED'],
+        'end': ['End', 'int', 'REQUIRED'],
+        'res': ['Resolution', 'int', 'REQUIRED'],
+        'region': ['Region ID', 'int', 'REQUIRED'],
+        'model': ['Model ID', 'str', 'REQUIRED'],
+        'page': ['Page number (default: 0)', 'int', 'OPTIONAL'],
+        'mpp': ['Models per page (default: 10; max: 100)', 'int', 'OPTIONAL'],
     }
 
-    used_param = {k : parameters[k] for k in parameters_required if k in parameters}
+    used_param = {k: parameters[k] for k in parameters_required if k in parameters}
 
     usage = {
-        '_links' : {
-            '_self' : request.base_url,
-            '_parent' : request.url_root + 'mug/api/dmp'
+        '_links': {
+            '_self': request.base_url,
+            '_parent': request.url_root + 'mug/api/dmp'
         },
-        'parameters' : used_param
+        'parameters': used_param
     }
     message = {
-        'usage' : usage,
-        'status_code' : status_code
+        'usage': usage,
+        'status_code': status_code
     }
 
     if parameters_provided:
@@ -170,7 +171,7 @@ class GetResolutions(Resource):
                 'MissingParameters',
                 400,
                 params_required,
-                {'user_id' : user_id, 'file_id' : file_id}
+                {'user_id': user_id, 'file_id': file_id}
             )
 
         hdf5_handle = coord(user_id, file_id)
@@ -187,9 +188,9 @@ class GetResolutions(Resource):
             chr_url += '&res=' + str(res)
             resolutions.append(
                 {
-                    'resolution' : res,
-                    '_links' : {
-                        '_chromosomes' : chr_url
+                    'resolution': res,
+                    '_links': {
+                        '_chromosomes': chr_url
                     }
                 }
             )
@@ -255,7 +256,7 @@ class GetChromosomes(Resource):
                 'MissingParameters',
                 400,
                 params_required,
-                {'user_id' : user_id, 'file_id' : file_id}
+                {'user_id': user_id, 'file_id': file_id}
             )
 
         try:
@@ -266,7 +267,7 @@ class GetChromosomes(Resource):
                 'IncorrectParameterType',
                 400,
                 params_required,
-                {'user_id' : user_id, 'file_id' : file_id, 'res' : resolution}
+                {'user_id': user_id, 'file_id': file_id, 'res': resolution}
             )
 
         hdf5_handle = coord(user_id, file_id, resolution)
@@ -285,9 +286,9 @@ class GetChromosomes(Resource):
             region_url += '&start=0&end=1000000000'
             chromosomes.append(
                 {
-                    'chromosome' : chrom,
-                    '_links' : {
-                        '_regions' : region_url
+                    'chromosome': chrom,
+                    '_links': {
+                        '_regions': region_url
                     }
                 }
             )
@@ -300,7 +301,7 @@ class GetChromosomes(Resource):
         data['_links'] = {
             '_self': self_url,
             '_parent': request.url_root + 'mug/api/3dcoord',
-            '_resolution' : res_url
+            '_resolution': res_url
         }
 
         return data
@@ -368,12 +369,12 @@ class GetRegions(Resource):
                 400,
                 params_required,
                 {
-                    'user_id' : user_id,
-                    'file_id' : file_id,
-                    'res' : resolution,
-                    'chrom' : chr_id,
-                    'start' : start,
-                    'end' : end
+                    'user_id': user_id,
+                    'file_id': file_id,
+                    'res': resolution,
+                    'chrom': chr_id,
+                    'start': start,
+                    'end': end
                 }
             )
 
@@ -388,12 +389,12 @@ class GetRegions(Resource):
                 400,
                 params_required,
                 {
-                    'user_id' : user_id,
-                    'file_id' : file_id,
-                    'res' : resolution,
-                    'chrom' : chr_id,
-                    'start' : start,
-                    'end' : end
+                    'user_id': user_id,
+                    'file_id': file_id,
+                    'res': resolution,
+                    'chrom': chr_id,
+                    'start': start,
+                    'end': end
                 }
             )
 
@@ -410,9 +411,9 @@ class GetRegions(Resource):
             model_url += '&region=' + reg
             regions.append(
                 {
-                    'region_id' : reg,
-                    '_links' : {
-                        '_models' : model_url
+                    'region_id': reg,
+                    '_links': {
+                        '_models': model_url
                     }
                 }
             )
@@ -424,8 +425,8 @@ class GetRegions(Resource):
         data['_links'] = {
             '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chrom=' + str(chr_id) + '&start=' + str(start) + '&end=' + str(end),
             '_parent': request.url_root + 'mug/api/3dcoord',
-            '_resolution' : request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id,
-            '_chromosomes' : request.url_root + 'mug/api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
+            '_resolution': request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id,
+            '_chromosomes': request.url_root + 'mug/api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
         }
 
         return data
@@ -486,10 +487,10 @@ class GetModels(Resource):
                 400,
                 params_required,
                 {
-                    'user_id' : user_id,
-                    'file_id' : file_id,
-                    'res' : resolution,
-                    'region' : region_id
+                    'user_id': user_id,
+                    'file_id': file_id,
+                    'res': resolution,
+                    'region': region_id
                 }
             )
 
@@ -502,10 +503,10 @@ class GetModels(Resource):
                 400,
                 params_required,
                 {
-                    'user_id' : user_id,
-                    'file_id' : file_id,
-                    'res' : resolution,
-                    'region' : region_id
+                    'user_id': user_id,
+                    'file_id': file_id,
+                    'res': resolution,
+                    'region': region_id
                 }
             )
 
@@ -517,10 +518,10 @@ class GetModels(Resource):
         models = {}
         models['model_list'] = [
             {
-                'model' : str(m[0]),
-                'cluster' : str(m[1]),
-                '_links' : {
-                    '_model' : request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
+                'model': str(m[0]),
+                'cluster': str(m[1]),
+                '_links': {
+                    '_model': request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
                 }
             } for m in model_list
         ]
@@ -604,11 +605,11 @@ class GetModel(Resource):
                 400,
                 params_required,
                 {
-                    'user_id' : user_id,
-                    'file_id' : file_id,
-                    'res' : resolution,
-                    'region' : region_id,
-                    'model' : model_str
+                    'user_id': user_id,
+                    'file_id': file_id,
+                    'res': resolution,
+                    'region': region_id,
+                    'model': model_str
                 }
             )
 
@@ -629,11 +630,11 @@ class GetModel(Resource):
                 400,
                 params_required,
                 {
-                    'user_id' : user_id,
-                    'file_id' : file_id,
-                    'res' : resolution,
-                    'region' : region_id,
-                    'model' : model_str
+                    'user_id': user_id,
+                    'file_id': file_id,
+                    'res': resolution,
+                    'region': region_id,
+                    'model': model_str
                 }
             )
 
@@ -652,10 +653,10 @@ class GetModel(Resource):
         }
 
         models['query_data'] = {
-            'model_count' : model_meta['model_count'],
-            'page_count'  : model_meta['page_count'],
-            'page'        : page,
-            'mpp'         : mpp
+            'model_count': model_meta['model_count'],
+            'page_count': model_meta['page_count'],
+            'page': page,
+            'mpp': mpp
         }
 
         if (page) < model_meta['page_count']:
@@ -695,9 +696,9 @@ class Ping(Resource):
             "license": release.__license__,
             "name":    release.__rest_name__,
             "description": release.__description__,
-            "_links" : {
-                '_self' : request.url_root + 'mug/api/3dcoord/ping',
-                '_parent' : request.url_root + 'mug/api/3dcoord'
+            "_links": {
+                '_self': request.url_root + 'mug/api/3dcoord/ping',
+                '_parent': request.url_root + 'mug/api/3dcoord'
             }
         }
         return res

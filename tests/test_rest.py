@@ -1,5 +1,6 @@
 """
-.. Copyright 2017 EMBL-European Bioinformatics Institute
+.. See the NOTICE file distributed with this work for additional information
+   regarding copyright ownership.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -151,7 +152,9 @@ def test_models_00(client):
     resolutions = json.loads(rest_value.data)
     resolution = str(resolutions['resolutions'][0]['resolution'])
 
-    rest_value = client.get('/mug/api/3dcoord/chromosomes?user_id=test&file_id=test&res=' + resolution)
+    rest_value = client.get(
+        '/mug/api/3dcoord/chromosomes?user_id=test&file_id=test&res=' + resolution
+    )
     chr_details = json.loads(rest_value.data)
 
     chromosome = chr_details['chromosomes'][0]['chromosome']
@@ -187,7 +190,9 @@ def test_model_00(client):
     resolutions = json.loads(rest_value.data)
     resolution = str(resolutions['resolutions'][0]['resolution'])
 
-    rest_value = client.get('/mug/api/3dcoord/chromosomes?user_id=test&file_id=test&res=' + resolution)
+    rest_value = client.get(
+        '/mug/api/3dcoord/chromosomes?user_id=test&file_id=test&res=' + resolution
+    )
     chr_details = json.loads(rest_value.data)
 
     chromosome = chr_details['chromosomes'][0]['chromosome']
