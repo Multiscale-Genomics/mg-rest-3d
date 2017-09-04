@@ -20,6 +20,8 @@ from flask_restful import Api, Resource
 
 from reader.hdf5_coord import coord
 
+from rest.mg_auth import authorized
+
 
 APP = Flask(__name__)
 #app.config['DEBUG'] = False
@@ -130,8 +132,8 @@ class GetResolutions(Resource):
     resolutions that models have been generated for
     """
 
-    @staticmethod
-    def get():
+    @authorized
+    def get(self, user_id):
         """
         GET List available resolutions from dataset
 
@@ -155,54 +157,56 @@ class GetResolutions(Resource):
            curl -X GET http://localhost:5001/mug/api/3dcoord/resolutions?user_id=test&file_id=test_file
 
         """
-        user_id = request.args.get('user_id')
-        file_id = request.args.get('file_id')
+        if user_id is not None:
+            file_id = request.args.get('file_id')
 
-        params_required = ['user_id', 'file_id']
-        params = [user_id, file_id]
+            params_required = ['user_id', 'file_id']
+            params = [user_id, file_id]
 
-        # Display the parameters available
-        if sum([x is None for x in params]) == len(params):
-            return help_usage(None, 200, params_required, {})
+            # Display the parameters available
+            if sum([x is None for x in params]) == len(params):
+                return help_usage(None, 200, params_required, {})
 
-        # ERROR - one of the required parameters is NoneType
-        if sum([x is not None for x in params]) != len(params):
-            return help_usage(
-                'MissingParameters',
-                400,
-                params_required,
-                {'user_id': user_id, 'file_id': file_id}
-            )
+            # ERROR - one of the required parameters is NoneType
+            if sum([x is not None for x in params]) != len(params):
+                return help_usage(
+                    'MissingParameters',
+                    400,
+                    params_required,
+                    {'user_id': user_id, 'file_id': file_id}
+                )
 
-        hdf5_handle = coord(user_id, file_id)
-        resolution_list = hdf5_handle.get_resolutions()
-        hdf5_handle.close()
+            hdf5_handle = coord(user_id, file_id)
+            resolution_list = hdf5_handle.get_resolutions()
+            hdf5_handle.close()
 
-        data = {}
+            data = {}
 
-        resolutions = []
-        for res in resolution_list:
-            chr_url = request.url_root
-            chr_url += 'mug/api/3dcoord/chromosomes?user_id=' + user_id
-            chr_url += '&file_id=' + file_id
-            chr_url += '&res=' + str(res)
-            resolutions.append(
-                {
-                    'resolution': res,
-                    '_links': {
-                        '_chromosomes': chr_url
+            resolutions = []
+            for res in resolution_list:
+                chr_url = request.url_root
+                chr_url += 'mug/api/3dcoord/chromosomes?user_id=' + user_id
+                chr_url += '&file_id=' + file_id
+                chr_url += '&res=' + str(res)
+                resolutions.append(
+                    {
+                        'resolution': res,
+                        '_links': {
+                            '_chromosomes': chr_url
+                        }
                     }
-                }
-            )
+                )
 
-        data['resolutions'] = resolutions
+            data['resolutions'] = resolutions
 
-        data['_links'] = {
-            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id,
-            '_parent': request.url_root + 'mug/api/3dcoord'
-        }
+            data['_links'] = {
+                '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id,
+                '_parent': request.url_root + 'mug/api/3dcoord'
+            }
 
-        return data
+            return data
+
+        return help_usage('Forbidden', 403, ['file_id'], {})
 
 
 class GetChromosomes(Resource):
@@ -211,8 +215,8 @@ class GetChromosomes(Resource):
     chromosomes that the models have been generated across
     """
 
-    @staticmethod
-    def get():
+    @authorized
+    def get(self, user_id):
         """
         GET List available chromosomes from dataset
 
@@ -239,72 +243,74 @@ class GetChromosomes(Resource):
            curl -X GET http://localhost:5001/mug/api/3dcoord/chromosomes?user_id=test&file_id=test_file
 
         """
-        user_id = request.args.get('user_id')
-        file_id = request.args.get('file_id')
-        resolution = request.args.get('res')
+        if user_id is None:
+            file_id = request.args.get('file_id')
+            resolution = request.args.get('res')
 
-        params_required = ['user_id', 'file_id', 'res']
-        params = [user_id, file_id, resolution]
+            params_required = ['user_id', 'file_id', 'res']
+            params = [user_id, file_id, resolution]
 
-        # Display the parameters available
-        if sum([x is None for x in params]) == len(params):
-            return help_usage(None, 200, params_required, {})
+            # Display the parameters available
+            if sum([x is None for x in params]) == len(params):
+                return help_usage(None, 200, params_required, {})
 
-        # ERROR - one of the required parameters is NoneType
-        if sum([x is not None for x in params]) != len(params):
-            return help_usage(
-                'MissingParameters',
-                400,
-                params_required,
-                {'user_id': user_id, 'file_id': file_id}
-            )
+            # ERROR - one of the required parameters is NoneType
+            if sum([x is not None for x in params]) != len(params):
+                return help_usage(
+                    'MissingParameters',
+                    400,
+                    params_required,
+                    {'user_id': user_id, 'file_id': file_id}
+                )
 
-        try:
-            resolution = int(resolution)
-        except ValueError:
-            # ERROR - one of the parameters is not of integer type
-            return help_usage(
-                'IncorrectParameterType',
-                400,
-                params_required,
-                {'user_id': user_id, 'file_id': file_id, 'res': resolution}
-            )
+            try:
+                resolution = int(resolution)
+            except ValueError:
+                # ERROR - one of the parameters is not of integer type
+                return help_usage(
+                    'IncorrectParameterType',
+                    400,
+                    params_required,
+                    {'user_id': user_id, 'file_id': file_id, 'res': resolution}
+                )
 
-        hdf5_handle = coord(user_id, file_id, resolution)
-        chromosome_list = hdf5_handle.get_chromosomes()
-        hdf5_handle.close()
+            hdf5_handle = coord(user_id, file_id, resolution)
+            chromosome_list = hdf5_handle.get_chromosomes()
+            hdf5_handle.close()
 
-        data = {}
+            data = {}
 
-        chromosomes = []
-        for chrom in chromosome_list:
-            region_url = request.url_root
-            region_url += 'mug/api/3dcoord/regions?user_id=' + user_id
-            region_url += '&file_id=' + file_id
-            region_url += '&res=' + str(resolution)
-            region_url += '&chrom=' + str(chrom)
-            region_url += '&start=0&end=1000000000'
-            chromosomes.append(
-                {
-                    'chromosome': chrom,
-                    '_links': {
-                        '_regions': region_url
+            chromosomes = []
+            for chrom in chromosome_list:
+                region_url = request.url_root
+                region_url += 'mug/api/3dcoord/regions?user_id=' + user_id
+                region_url += '&file_id=' + file_id
+                region_url += '&res=' + str(resolution)
+                region_url += '&chrom=' + str(chrom)
+                region_url += '&start=0&end=1000000000'
+                chromosomes.append(
+                    {
+                        'chromosome': chrom,
+                        '_links': {
+                            '_regions': region_url
+                        }
                     }
-                }
-            )
+                )
 
-        data['resolution'] = resolution
-        data['chromosomes'] = chromosomes
+            data['resolution'] = resolution
+            data['chromosomes'] = chromosomes
 
-        self_url = request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution),
-        res_url = request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id
-        data['_links'] = {
-            '_self': self_url,
-            '_parent': request.url_root + 'mug/api/3dcoord',
-            '_resolution': res_url
-        }
+            self_url = request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution),
+            res_url = request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id
+            data['_links'] = {
+                '_self': self_url,
+                '_parent': request.url_root + 'mug/api/3dcoord',
+                '_resolution': res_url
+            }
 
-        return data
+            return data
+
+        return help_usage('Forbidden', 403, ['file_id', 'res'], {})
 
 
 class GetRegions(Resource):
@@ -313,8 +319,8 @@ class GetRegions(Resource):
     regions that are available in a given region and level of resolution
     """
 
-    @staticmethod
-    def get():
+    @authorized
+    def get(self, user_id):
         """
         GET List available models from dataset
 
@@ -348,88 +354,90 @@ class GetRegions(Resource):
            curl -X GET http://localhost:5001/mug/api/3dcoord/regions?user_id=test&file_id=test_file&res=1000000&chrom=1&start=1&end=1000000
 
         """
-        user_id = request.args.get('user_id')
-        file_id = request.args.get('file_id')
-        resolution = request.args.get('res')
-        chr_id = request.args.get('chrom')
-        start = request.args.get('start')
-        end = request.args.get('end')
+        if user_id is not None:
+            file_id = request.args.get('file_id')
+            resolution = request.args.get('res')
+            chr_id = request.args.get('chrom')
+            start = request.args.get('start')
+            end = request.args.get('end')
 
-        params_required = ['user_id', 'file_id', 'res', 'chrom', 'start', 'end']
-        params = [user_id, file_id, resolution, chr_id, start, end]
+            params_required = ['user_id', 'file_id', 'res', 'chrom', 'start', 'end']
+            params = [user_id, file_id, resolution, chr_id, start, end]
 
-        # Display the parameters available
-        if sum([x is None for x in params]) == len(params):
-            return help_usage(None, 200, params_required, {})
+            # Display the parameters available
+            if sum([x is None for x in params]) == len(params):
+                return help_usage(None, 200, params_required, {})
 
-        # ERROR - one of the required parameters is NoneType
-        if sum([x is not None for x in params]) != len(params):
-            return help_usage(
-                'MissingParameters',
-                400,
-                params_required,
-                {
-                    'user_id': user_id,
-                    'file_id': file_id,
-                    'res': resolution,
-                    'chrom': chr_id,
-                    'start': start,
-                    'end': end
-                }
-            )
-
-        try:
-            start = int(start)
-            end = int(end)
-            resolution = int(resolution)
-        except ValueError:
-            # ERROR - one of the parameters is not of integer type
-            return help_usage(
-                'IncorrectParameterType',
-                400,
-                params_required,
-                {
-                    'user_id': user_id,
-                    'file_id': file_id,
-                    'res': resolution,
-                    'chrom': chr_id,
-                    'start': start,
-                    'end': end
-                }
-            )
-
-        hdf5_handle = coord(user_id, file_id, resolution)
-        region_list = hdf5_handle.get_regions(chr_id, start, end)
-        hdf5_handle.close()
-
-        data = {}
-        regions = []
-        for reg in region_list:
-            model_url = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id
-            model_url += '&file_id=' + file_id
-            model_url += '&res=' + str(resolution)
-            model_url += '&region=' + reg
-            regions.append(
-                {
-                    'region_id': reg,
-                    '_links': {
-                        '_models': model_url
+            # ERROR - one of the required parameters is NoneType
+            if sum([x is not None for x in params]) != len(params):
+                return help_usage(
+                    'MissingParameters',
+                    400,
+                    params_required,
+                    {
+                        'user_id': user_id,
+                        'file_id': file_id,
+                        'res': resolution,
+                        'chrom': chr_id,
+                        'start': start,
+                        'end': end
                     }
-                }
-            )
+                )
 
-        data['resolution'] = resolution,
-        data['chromosome'] = chr_id,
-        data['regions'] = regions
+            try:
+                start = int(start)
+                end = int(end)
+                resolution = int(resolution)
+            except ValueError:
+                # ERROR - one of the parameters is not of integer type
+                return help_usage(
+                    'IncorrectParameterType',
+                    400,
+                    params_required,
+                    {
+                        'user_id': user_id,
+                        'file_id': file_id,
+                        'res': resolution,
+                        'chrom': chr_id,
+                        'start': start,
+                        'end': end
+                    }
+                )
 
-        data['_links'] = {
-            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chrom=' + str(chr_id) + '&start=' + str(start) + '&end=' + str(end),
-            '_parent': request.url_root + 'mug/api/3dcoord',
-            '_resolution': request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id,
-            '_chromosomes': request.url_root + 'mug/api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
-        }
+            hdf5_handle = coord(user_id, file_id, resolution)
+            region_list = hdf5_handle.get_regions(chr_id, start, end)
+            hdf5_handle.close()
 
-        return data
+            data = {}
+            regions = []
+            for reg in region_list:
+                model_url = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id
+                model_url += '&file_id=' + file_id
+                model_url += '&res=' + str(resolution)
+                model_url += '&region=' + reg
+                regions.append(
+                    {
+                        'region_id': reg,
+                        '_links': {
+                            '_models': model_url
+                        }
+                    }
+                )
+
+            data['resolution'] = resolution,
+            data['chromosome'] = chr_id,
+            data['regions'] = regions
+
+            data['_links'] = {
+                '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chrom=' + str(chr_id) + '&start=' + str(start) + '&end=' + str(end),
+                '_parent': request.url_root + 'mug/api/3dcoord',
+                '_resolution': request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id,
+                '_chromosomes': request.url_root + 'mug/api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
+            }
+
+            return data
+
+        return help_usage('Forbidden', 403, ['file_id', 'res', 'chrom', 'start', 'end'], {})
 
 
 class GetModels(Resource):
@@ -438,8 +446,8 @@ class GetModels(Resource):
     that are available within a given region.
     """
 
-    @staticmethod
-    def get():
+    @authorized
+    def get(self, user_id):
         """
         GET List available models from dataset
 
@@ -468,80 +476,82 @@ class GetModels(Resource):
            curl -X GET http://localhost:5001/mug/api/3dcoord/models?user_id=test&file_id=test_file&res=1000000&region=1
 
         """
-        user_id = request.args.get('user_id')
-        file_id = request.args.get('file_id')
-        resolution = request.args.get('res')
-        region_id = request.args.get('region')
+        if user_id is not None:
+            file_id = request.args.get('file_id')
+            resolution = request.args.get('res')
+            region_id = request.args.get('region')
 
-        params_required = ['user_id', 'file_id', 'res', 'region']
-        params = [user_id, file_id, resolution, region_id]
+            params_required = ['user_id', 'file_id', 'res', 'region']
+            params = [user_id, file_id, resolution, region_id]
 
-        # Display the parameters available
-        if sum([x is None for x in params]) == len(params):
-            return help_usage(None, 200, params_required, {})
+            # Display the parameters available
+            if sum([x is None for x in params]) == len(params):
+                return help_usage(None, 200, params_required, {})
 
-        # ERROR - one of the required parameters is NoneType
-        if sum([x is not None for x in params]) != len(params):
-            return help_usage(
-                'MissingParameters',
-                400,
-                params_required,
+            # ERROR - one of the required parameters is NoneType
+            if sum([x is not None for x in params]) != len(params):
+                return help_usage(
+                    'MissingParameters',
+                    400,
+                    params_required,
+                    {
+                        'user_id': user_id,
+                        'file_id': file_id,
+                        'res': resolution,
+                        'region': region_id
+                    }
+                )
+
+            try:
+                resolution = int(resolution)
+            except ValueError:
+                # ERROR - one of the parameters is not of integer type
+                return help_usage(
+                    'IncorrectParameterType',
+                    400,
+                    params_required,
+                    {
+                        'user_id': user_id,
+                        'file_id': file_id,
+                        'res': resolution,
+                        'region': region_id
+                    }
+                )
+
+            hdf5_handle = coord(user_id, file_id, resolution)
+            model_list = hdf5_handle.get_models(region_id)
+            region_list = hdf5_handle.get_region_order(region=region_id)
+            hdf5_handle.close()
+
+            models = {}
+            models['model_list'] = [
                 {
-                    'user_id': user_id,
-                    'file_id': file_id,
-                    'res': resolution,
-                    'region': region_id
-                }
-            )
+                    'model': str(m[0]),
+                    'cluster': str(m[1]),
+                    '_links': {
+                        '_model': request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
+                    }
+                } for m in model_list
+            ]
 
-        try:
-            resolution = int(resolution)
-        except ValueError:
-            # ERROR - one of the parameters is not of integer type
-            return help_usage(
-                'IncorrectParameterType',
-                400,
-                params_required,
-                {
-                    'user_id': user_id,
-                    'file_id': file_id,
-                    'res': resolution,
-                    'region': region_id
-                }
-            )
+            models['_links'] = {
+                '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id),
+                '_parent': request.url_root + 'mug/api/3dcoord',
+                '_models_all': request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=all'
+            }
 
-        hdf5_handle = coord(user_id, file_id, resolution)
-        model_list = hdf5_handle.get_models(region_id)
-        region_list = hdf5_handle.get_region_order(region=region_id)
-        hdf5_handle.close()
+            current_region = region_list.index(region_id)
+            next_region = current_region+1
+            previous_region = current_region-1
 
-        models = {}
-        models['model_list'] = [
-            {
-                'model': str(m[0]),
-                'cluster': str(m[1]),
-                '_links': {
-                    '_model': request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
-                }
-            } for m in model_list
-        ]
+            if current_region < (len(region_list)-1):
+                models['_links']['_next_region'] = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[next_region]
+            if current_region > 0:
+                models['_links']['_previous_region'] = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[previous_region]
 
-        models['_links'] = {
-            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id),
-            '_parent': request.url_root + 'mug/api/3dcoord',
-            '_models_all': request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=all'
-        }
+            return models
 
-        current_region = region_list.index(region_id)
-        next_region = current_region+1
-        previous_region = current_region-1
-
-        if current_region < (len(region_list)-1):
-            models['_links']['_next_region'] = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[next_region]
-        if current_region > 0:
-            models['_links']['_previous_region'] = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[previous_region]
-
-        return models
+        return help_usage('Forbidden', 403, ['file_id', 'res', 'region'], {})
 
 
 class GetModel(Resource):
@@ -551,8 +561,8 @@ class GetModel(Resource):
     multiple models from the same region
     """
 
-    @staticmethod
-    def get():
+    @authorized
+    def get(self, user_id):
         """
         GET List available model from dataset
 
@@ -583,88 +593,90 @@ class GetModel(Resource):
            curl -X GET http://localhost:5001/mug/api/3dcoord/model?user_id=test&file_id=test_file&region=1&model=model1
 
         """
-        user_id = request.args.get('user_id')
-        file_id = request.args.get('file_id')
-        resolution = request.args.get('res')
-        region_id = request.args.get('region')
-        model_str = request.args.get('model')
-        page = request.args.get('page')
-        mpp = request.args.get('mpp')
+        if user_id is not None:
+            file_id = request.args.get('file_id')
+            resolution = request.args.get('res')
+            region_id = request.args.get('region')
+            model_str = request.args.get('model')
+            page = request.args.get('page')
+            mpp = request.args.get('mpp')
 
-        params_required = ['user_id', 'file_id', 'res', 'region', 'model']
-        params = [user_id, file_id, resolution, region_id, model_str]
+            params_required = ['user_id', 'file_id', 'res', 'region', 'model']
+            params = [user_id, file_id, resolution, region_id, model_str]
 
-        # Display the parameters available
-        if sum([x is None for x in params]) == len(params):
-            return help_usage(None, 200, params_required, {})
+            # Display the parameters available
+            if sum([x is None for x in params]) == len(params):
+                return help_usage(None, 200, params_required, {})
 
-        # ERROR - one of the required parameters is NoneType
-        if sum([x is not None for x in params]) != len(params):
-            return help_usage(
-                'MissingParameters',
-                400,
-                params_required,
-                {
-                    'user_id': user_id,
-                    'file_id': file_id,
-                    'res': resolution,
-                    'region': region_id,
-                    'model': model_str
-                }
-            )
+            # ERROR - one of the required parameters is NoneType
+            if sum([x is not None for x in params]) != len(params):
+                return help_usage(
+                    'MissingParameters',
+                    400,
+                    params_required,
+                    {
+                        'user_id': user_id,
+                        'file_id': file_id,
+                        'res': resolution,
+                        'region': region_id,
+                        'model': model_str
+                    }
+                )
 
-        if page is None:
-            page = 1
+            if page is None:
+                page = 1
 
-        if mpp is None:
-            mpp = 10
+            if mpp is None:
+                mpp = 10
 
-        try:
-            resolution = int(resolution)
-            page = int(page)
-            mpp = int(mpp)
-        except ValueError:
-            # ERROR - one of the parameters is not of integer type
-            return help_usage(
-                'IncorrectParameterType',
-                400,
-                params_required,
-                {
-                    'user_id': user_id,
-                    'file_id': file_id,
-                    'res': resolution,
-                    'region': region_id,
-                    'model': model_str
-                }
-            )
+            try:
+                resolution = int(resolution)
+                page = int(page)
+                mpp = int(mpp)
+            except ValueError:
+                # ERROR - one of the parameters is not of integer type
+                return help_usage(
+                    'IncorrectParameterType',
+                    400,
+                    params_required,
+                    {
+                        'user_id': user_id,
+                        'file_id': file_id,
+                        'res': resolution,
+                        'region': region_id,
+                        'model': model_str
+                    }
+                )
 
-        if page < 1:
-            page = 1
+            if page < 1:
+                page = 1
 
-        hdf5_handle = coord(user_id, file_id, resolution)
+            hdf5_handle = coord(user_id, file_id, resolution)
 
-        model_ids = model_str.split(',')
-        models, model_meta = hdf5_handle.get_model(region_id, model_ids, page-1, mpp)
-        hdf5_handle.close()
+            model_ids = model_str.split(',')
+            models, model_meta = hdf5_handle.get_model(region_id, model_ids, page-1, mpp)
+            hdf5_handle.close()
 
-        models['_links'] = {
-            '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page),
-            '_parent': request.url_root + 'mug/api/3dcoord',
-        }
+            models['_links'] = {
+                '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page),
+                '_parent': request.url_root + 'mug/api/3dcoord',
+            }
 
-        models['query_data'] = {
-            'model_count': model_meta['model_count'],
-            'page_count': model_meta['page_count'],
-            'page': page,
-            'mpp': mpp
-        }
+            models['query_data'] = {
+                'model_count': model_meta['model_count'],
+                'page_count': model_meta['page_count'],
+                'page': page,
+                'mpp': mpp
+            }
 
-        if (page) < model_meta['page_count']:
-            models['_links']['_next_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page+1)
-        if (page) > 1:
-            models['_links']['_previous_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page-1)
+            if (page) < model_meta['page_count']:
+                models['_links']['_next_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page+1)
+            if (page) > 1:
+                models['_links']['_previous_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page-1)
 
-        return models
+            return models
+
+        return help_usage('Forbidden', 403, ['file_id', 'res', 'region', 'model'], {})
 
 
 class Ping(Resource):
