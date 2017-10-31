@@ -26,7 +26,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return MagicMock()
 
-MOCK_MODULES = ['pyBigWig', 'dmp', 'reader.hdf5_coord']
+MOCK_MODULES = ['pyBigWig', 'dmp', 'reader', 'reader.hdf5_coord']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
