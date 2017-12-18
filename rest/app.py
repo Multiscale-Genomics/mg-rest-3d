@@ -15,6 +15,8 @@
    limitations under the License.
 """
 
+from __future__ import print_function
+
 from flask import Flask, request
 from flask_restful import Api, Resource
 
