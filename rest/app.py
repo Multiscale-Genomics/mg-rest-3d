@@ -17,6 +17,9 @@
 
 from __future__ import print_function
 
+import os
+import sys
+
 from flask import Flask, request
 from flask_restful import Api, Resource
 
@@ -92,6 +95,11 @@ def help_usage(error_message, status_code,
 
     return message
 
+def _get_dm_api(user_id, file_id, resolution=None):
+    cnf_loc = os.path.dirname(os.path.abspath(__file__)) + '/mongodb.cnf'
+    return coord(user_id["user_id"], file_id, resolution, cnf_loc)
+
+
 class GetEndPoints(Resource):
     """
     Class to handle the http requests for returning information about the end
@@ -162,7 +170,7 @@ class GetResolutions(Resource):
         if user_id is not None:
             file_id = request.args.get('file_id')
 
-            params_required = ['user_id', 'file_id']
+            params_required = ['file_id']
             params = [user_id, file_id]
 
             # Display the parameters available
@@ -175,10 +183,10 @@ class GetResolutions(Resource):
                     'MissingParameters',
                     400,
                     params_required,
-                    {'user_id': user_id, 'file_id': file_id}
+                    {'file_id': file_id}
                 )
 
-            hdf5_handle = coord(user_id, file_id)
+            hdf5_handle = _get_dm_api(user_id, file_id)
             resolution_list = hdf5_handle.get_resolutions()
             hdf5_handle.close()
 
@@ -187,8 +195,7 @@ class GetResolutions(Resource):
             resolutions = []
             for res in resolution_list:
                 chr_url = request.url_root
-                chr_url += 'mug/api/3dcoord/chromosomes?user_id=' + user_id
-                chr_url += '&file_id=' + file_id
+                chr_url += 'mug/api/3dcoord/chromosomes?file_id=' + file_id
                 chr_url += '&res=' + str(res)
                 resolutions.append(
                     {
@@ -202,7 +209,7 @@ class GetResolutions(Resource):
             data['resolutions'] = resolutions
 
             data['_links'] = {
-                '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id,
+                '_self': request.base_url + '?file_id=' + file_id,
                 '_parent': request.url_root + 'mug/api/3dcoord'
             }
 
@@ -245,11 +252,11 @@ class GetChromosomes(Resource):
            curl -X GET http://localhost:5001/mug/api/3dcoord/chromosomes?user_id=test&file_id=test_file
 
         """
-        if user_id is None:
+        if user_id is not None:
             file_id = request.args.get('file_id')
             resolution = request.args.get('res')
 
-            params_required = ['user_id', 'file_id', 'res']
+            params_required = ['file_id', 'res']
             params = [user_id, file_id, resolution]
 
             # Display the parameters available
@@ -262,7 +269,7 @@ class GetChromosomes(Resource):
                     'MissingParameters',
                     400,
                     params_required,
-                    {'user_id': user_id, 'file_id': file_id}
+                    {'file_id': file_id}
                 )
 
             try:
@@ -273,10 +280,10 @@ class GetChromosomes(Resource):
                     'IncorrectParameterType',
                     400,
                     params_required,
-                    {'user_id': user_id, 'file_id': file_id, 'res': resolution}
+                    {'file_id': file_id, 'res': resolution}
                 )
 
-            hdf5_handle = coord(user_id, file_id, resolution)
+            hdf5_handle = _get_dm_api(user_id, file_id, resolution)
             chromosome_list = hdf5_handle.get_chromosomes()
             hdf5_handle.close()
 
@@ -285,8 +292,7 @@ class GetChromosomes(Resource):
             chromosomes = []
             for chrom in chromosome_list:
                 region_url = request.url_root
-                region_url += 'mug/api/3dcoord/regions?user_id=' + user_id
-                region_url += '&file_id=' + file_id
+                region_url += 'mug/api/3dcoord/regions?file_id=' + file_id
                 region_url += '&res=' + str(resolution)
                 region_url += '&chrom=' + str(chrom)
                 region_url += '&start=0&end=1000000000'
@@ -302,8 +308,8 @@ class GetChromosomes(Resource):
             data['resolution'] = resolution
             data['chromosomes'] = chromosomes
 
-            self_url = request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution),
-            res_url = request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id
+            self_url = request.base_url + '?file_id=' + file_id + '&res=' + str(resolution),
+            res_url = request.url_root + 'mug/api/3dcoord/resolutions?file_id=' + file_id
             data['_links'] = {
                 '_self': self_url,
                 '_parent': request.url_root + 'mug/api/3dcoord',
@@ -363,7 +369,7 @@ class GetRegions(Resource):
             start = request.args.get('start')
             end = request.args.get('end')
 
-            params_required = ['user_id', 'file_id', 'res', 'chrom', 'start', 'end']
+            params_required = ['file_id', 'res', 'chrom', 'start', 'end']
             params = [user_id, file_id, resolution, chr_id, start, end]
 
             # Display the parameters available
@@ -377,7 +383,6 @@ class GetRegions(Resource):
                     400,
                     params_required,
                     {
-                        'user_id': user_id,
                         'file_id': file_id,
                         'res': resolution,
                         'chrom': chr_id,
@@ -397,7 +402,6 @@ class GetRegions(Resource):
                     400,
                     params_required,
                     {
-                        'user_id': user_id,
                         'file_id': file_id,
                         'res': resolution,
                         'chrom': chr_id,
@@ -406,15 +410,14 @@ class GetRegions(Resource):
                     }
                 )
 
-            hdf5_handle = coord(user_id, file_id, resolution)
+            hdf5_handle = _get_dm_api(user_id, file_id, resolution)
             region_list = hdf5_handle.get_regions(chr_id, start, end)
             hdf5_handle.close()
 
             data = {}
             regions = []
             for reg in region_list:
-                model_url = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id
-                model_url += '&file_id=' + file_id
+                model_url = request.url_root + 'mug/api/3dcoord/models?file_id=' + file_id
                 model_url += '&res=' + str(resolution)
                 model_url += '&region=' + reg
                 regions.append(
@@ -431,10 +434,10 @@ class GetRegions(Resource):
             data['regions'] = regions
 
             data['_links'] = {
-                '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&chrom=' + str(chr_id) + '&start=' + str(start) + '&end=' + str(end),
+                '_self': request.base_url + '?file_id=' + file_id + '&res=' + str(resolution) + '&chrom=' + str(chr_id) + '&start=' + str(start) + '&end=' + str(end),
                 '_parent': request.url_root + 'mug/api/3dcoord',
-                '_resolution': request.url_root + 'mug/api/3dcoord/resolutions?user_id=' + user_id + '&file_id=' + file_id,
-                '_chromosomes': request.url_root + 'mug/api/3dcoord/chromosomes?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution)
+                '_resolution': request.url_root + 'mug/api/3dcoord/resolutions?file_id=' + file_id,
+                '_chromosomes': request.url_root + 'mug/api/3dcoord/chromosomes?file_id=' + file_id + '&res=' + str(resolution)
             }
 
             return data
@@ -483,7 +486,7 @@ class GetModels(Resource):
             resolution = request.args.get('res')
             region_id = request.args.get('region')
 
-            params_required = ['user_id', 'file_id', 'res', 'region']
+            params_required = ['file_id', 'res', 'region']
             params = [user_id, file_id, resolution, region_id]
 
             # Display the parameters available
@@ -497,7 +500,6 @@ class GetModels(Resource):
                     400,
                     params_required,
                     {
-                        'user_id': user_id,
                         'file_id': file_id,
                         'res': resolution,
                         'region': region_id
@@ -513,14 +515,13 @@ class GetModels(Resource):
                     400,
                     params_required,
                     {
-                        'user_id': user_id,
                         'file_id': file_id,
                         'res': resolution,
                         'region': region_id
                     }
                 )
 
-            hdf5_handle = coord(user_id, file_id, resolution)
+            hdf5_handle = _get_dm_api(user_id, file_id, resolution)
             model_list = hdf5_handle.get_models(region_id)
             region_list = hdf5_handle.get_region_order(region=region_id)
             hdf5_handle.close()
@@ -531,15 +532,15 @@ class GetModels(Resource):
                     'model': str(m[0]),
                     'cluster': str(m[1]),
                     '_links': {
-                        '_model': request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
+                        '_model': request.url_root + 'mug/api/3dcoord/model?file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(m[0])
                     }
                 } for m in model_list
             ]
 
             models['_links'] = {
-                '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id),
+                '_self': request.base_url + '?file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id),
                 '_parent': request.url_root + 'mug/api/3dcoord',
-                '_models_all': request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=all'
+                '_models_all': request.url_root + 'mug/api/3dcoord/model?file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=all'
             }
 
             current_region = region_list.index(region_id)
@@ -547,9 +548,9 @@ class GetModels(Resource):
             previous_region = current_region-1
 
             if current_region < (len(region_list)-1):
-                models['_links']['_next_region'] = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[next_region]
+                models['_links']['_next_region'] = request.url_root + 'mug/api/3dcoord/models?file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[next_region]
             if current_region > 0:
-                models['_links']['_previous_region'] = request.url_root + 'mug/api/3dcoord/models?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[previous_region]
+                models['_links']['_previous_region'] = request.url_root + 'mug/api/3dcoord/models?file_id=' + file_id + '&res=' + str(resolution) + '&region=' + region_list[previous_region]
 
             return models
 
@@ -603,7 +604,7 @@ class GetModel(Resource):
             page = request.args.get('page')
             mpp = request.args.get('mpp')
 
-            params_required = ['user_id', 'file_id', 'res', 'region', 'model']
+            params_required = ['file_id', 'res', 'region', 'model']
             params = [user_id, file_id, resolution, region_id, model_str]
 
             # Display the parameters available
@@ -617,7 +618,6 @@ class GetModel(Resource):
                     400,
                     params_required,
                     {
-                        'user_id': user_id,
                         'file_id': file_id,
                         'res': resolution,
                         'region': region_id,
@@ -642,7 +642,6 @@ class GetModel(Resource):
                     400,
                     params_required,
                     {
-                        'user_id': user_id,
                         'file_id': file_id,
                         'res': resolution,
                         'region': region_id,
@@ -653,14 +652,14 @@ class GetModel(Resource):
             if page < 1:
                 page = 1
 
-            hdf5_handle = coord(user_id, file_id, resolution)
+            hdf5_handle = _get_dm_api(user_id, file_id, resolution)
 
             model_ids = model_str.split(',')
             models, model_meta = hdf5_handle.get_model(region_id, model_ids, page-1, mpp)
             hdf5_handle.close()
 
             models['_links'] = {
-                '_self': request.base_url + '?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page),
+                '_self': request.base_url + '?file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page),
                 '_parent': request.url_root + 'mug/api/3dcoord',
             }
 
@@ -672,9 +671,9 @@ class GetModel(Resource):
             }
 
             if (page) < model_meta['page_count']:
-                models['_links']['_next_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page+1)
+                models['_links']['_next_page'] = request.url_root + 'mug/api/3dcoord/model?file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page+1)
             if (page) > 1:
-                models['_links']['_previous_page'] = request.url_root + 'mug/api/3dcoord/model?user_id=' + user_id + '&file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page-1)
+                models['_links']['_previous_page'] = request.url_root + 'mug/api/3dcoord/model?file_id=' + file_id + '&res=' + str(resolution) + '&region=' + str(region_id) + '&model=' + str(model_str) + '&mpp=' + str(mpp) + '&page=' +str(page-1)
 
             return models
 
@@ -720,6 +719,8 @@ class Ping(Resource):
 ################################################################################
 
 API = Api(APP)
+
+sys._auth_meta_json = os.path.dirname(os.path.realpath(__file__)) + '/auth_meta.json'
 
 """
 Define the URIs and their matching methods
